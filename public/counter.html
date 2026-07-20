@@ -1,0 +1,865 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Oasis — Counter</title>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://unpkg.com/@zxing/library@0.21.3/umd/index.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#07111b;--panel:rgba(255,255,255,.03);--bdr:rgba(255,255,255,.07);--acc:#F59E0B;--wht:#F0F6FC;--mut:#64748B}
+html,body{height:100%;background:var(--bg);color:var(--wht);font-family:'Manrope',sans-serif;overflow:hidden}
+.lay{display:flex;height:100vh}
+.sb{width:210px;flex-shrink:0;background:rgba(255,255,255,.02);border-right:1px solid var(--bdr);display:flex;flex-direction:column;overflow-y:auto}
+.sb-hd{padding:18px 14px 14px;border-bottom:1px solid var(--bdr)}
+.sb-ic{width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,#D97706,#F59E0B);display:flex;align-items:center;justify-content:center;font-size:15px}
+.sb-logo-img{width:34px;height:34px;border-radius:12px;object-fit:cover;box-shadow:0 4px 18px rgba(0,0,0,.25)}
+.sb-nm{font-family:'Manrope',sans-serif;font-size:13px;font-weight:800}
+.sb-rl{font-size:10px;color:var(--mut)}
+.sb-sc{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.2);padding:12px 14px 3px}
+.sl{display:flex;align-items:center;gap:9px;padding:9px 13px;border-radius:9px;cursor:pointer;font-size:13px;color:rgba(255,255,255,.5);transition:all .15s;margin:1px 6px;border-left:2px solid transparent}
+.sl:hover{background:rgba(255,255,255,.04);color:var(--wht)}
+.sl.on{background:rgba(245,158,11,.1);color:var(--wht);border-left-color:#F59E0B}
+.sb-ft{margin-top:auto;padding:12px 14px;border-top:1px solid var(--bdr);font-size:12px;color:var(--mut);cursor:pointer}
+.sb-ft:hover{color:#ef4444}
+.mn{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.tb{padding:14px 22px;border-bottom:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.tb-t{font-family:'Manrope',sans-serif;font-size:17px;font-weight:800}
+.tb-s{font-size:12px;color:var(--mut)}
+.ct{flex:1;overflow-y:auto;padding:22px}
+.pg{display:none}
+.sg{display:grid;grid-template-columns:repeat(4,1fr);gap:11px;margin-bottom:18px}
+.tc{display:grid;grid-template-columns:1fr 1fr;gap:13px}
+.fg{margin-bottom:13px}
+.fl{font-size:11px;font-weight:700;color:var(--mut);letter-spacing:.06em;text-transform:uppercase;display:block;margin-bottom:5px}
+.fi{width:100%;padding:10px 12px;background:rgba(255,255,255,.05);border:1px solid var(--bdr);border-radius:8px;color:var(--wht);font-family:'Manrope',sans-serif;font-size:13px;outline:none;transition:border-color .2s}
+.fi:focus{border-color:var(--acc)}
+.fi::placeholder{color:var(--mut)}
+.fi option{background:#0d1e2e}
+.btn{padding:9px 16px;background:linear-gradient(135deg,#D97706,#F59E0B);border:none;border-radius:8px;color:#fff;font-family:'Manrope',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;white-space:nowrap}
+.btn:hover{transform:translateY(-1px)}
+.bsm{padding:6px 11px;font-size:12px;border-radius:7px}
+.bgh{background:rgba(255,255,255,.05);border:1px solid var(--bdr);color:rgba(255,255,255,.6)}
+.bbl{background:linear-gradient(135deg,#0284C7,#0EA5E9)}
+.cam{background:#000;border-radius:11px;overflow:hidden;width:100%;aspect-ratio:4/3;margin-bottom:9px;position:relative}
+.cam video,.cam canvas{width:100%;height:100%;object-fit:cover;display:block}
+.cam canvas{display:none}
+@media(max-width:960px){.sg{grid-template-columns:1fr 1fr}.tc{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="lay">
+<div class="sb">
+  <div class="sb-hd"><div style="display:flex;align-items:center;gap:10px"><img class="sb-logo-img" src="https://i.postimg.cc/g21XrwWS/Gemini-Generated-Image-4r9ct4r9ct4r9ct4.png" alt="Oasis"><div><div class="sb-nm">Counter</div><div class="sb-rl" id="sbnm">—</div></div></div></div>
+  <div id="sbl"></div>
+  <div class="sb-ft" onclick="signout()">⬅ Sign out</div>
+</div>
+<div class="mn">
+  <div class="tb"><div><div class="tb-t" id="pgt">My Shift</div><div class="tb-s">Counter · Oasis Glenwood</div></div>
+    <div style="display:flex;gap:8px"><button class="btn bsm bgh" onclick="bulkWA()">📱 Bulk Remind</button><button class="btn bsm" onclick="init()">↻</button></div>
+  </div>
+  <div class="ct" id="ct"></div>
+</div>
+</div>
+<script>
+const SUPA='https://lyzuwgovltrkwexzqtdv.supabase.co';
+const KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx5enV3Z292bHRya3dleHpxdGR2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA0MDcyNDMsImV4cCI6MjA5NTk4MzI0M30.PQD_Y-YkI8Q3Az2Ykeq-jvINqee5IG8f9lpD-5fFz74';
+const me=(()=>{const s=sessionStorage.getItem('oasis_staff');if(!s){location.href='index.html';return null;}return JSON.parse(s);})();
+if(me&&me.role!=='Counter')location.href='index.html';
+if(me)document.getElementById('sbnm').textContent=me.name;
+function signout(){sessionStorage.clear();location.href='index.html';}
+if(!sessionStorage.getItem('popia_ok'))openM('⚠️ POPIA Notice',`<div style="background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);border-radius:9px;padding:15px;font-size:13px;line-height:1.7;color:rgba(255,255,255,.8);margin-bottom:18px">When registering a customer, inform them their <strong>name, phone and order history</strong> will be stored by <strong>Oasis Dry Cleaning & Laundry</strong> for order management only. Obtain verbal consent before ticking the consent box.</div><button class="btn" style="width:100%" onclick="sessionStorage.setItem('popia_ok','1');closeM()">✓ Understood</button>`);
+
+async function api(t,o={}){
+  const{method='GET',filter='',body,select='*',order='',limit=''}=o;
+  let url=`${SUPA}/rest/v1/${t}?select=${select}`;
+  if(filter)url+='&'+filter;if(order)url+='&order='+order;if(limit)url+='&limit='+limit;
+  const h={'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json','Prefer':method==='POST'?'return=representation':'return=minimal'};
+  const r=await fetch(url,{method,headers:h,body:body?JSON.stringify(body):undefined});
+  if(!r.ok){const errTxt=await r.text();console.error(errTxt);try{const ej=JSON.parse(errTxt);toast('DB error: '+(ej.message||ej.hint||errTxt).slice(0,120),'err');}catch{toast('DB error: '+errTxt.slice(0,120),'err');}return null;}const t2=await r.text();return t2?JSON.parse(t2):(method==='GET'?[]:true);
+}
+const get=(t,f,x={})=>api(t,{filter:f,...x});
+const post=(t,b)=>api(t,{method:'POST',body:b});
+const patch=(t,f,b)=>api(t,{method:'PATCH',filter:f,body:b});
+
+const rnd=n=>'R '+parseFloat(n||0).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,',');
+const fdt=s=>s?new Date(s).toLocaleDateString('en-ZA',{day:'2-digit',month:'short',year:'numeric'}):'—';
+const ftm=s=>s?new Date(s).toLocaleTimeString('en-ZA',{hour:'2-digit',minute:'2-digit'}):'—';
+function bdg(t,c){const m={Ready:'#10b981',Processing:'#f59e0b',Received:'#38bdf8',Collected:'#a78bfa',Overdue:'#ef4444',Cash:'#10b981',Card:'#38bdf8',EFT:'#f59e0b',SnapScan:'#a78bfa'};const col=c||m[t]||'#64748b';return`<span style="padding:2px 9px;border-radius:20px;font-size:11px;font-weight:700;background:${col}22;color:${col};border:1px solid ${col}44">${t}</span>`;}
+function toast(msg,type='ok'){let w=document.getElementById('tw');if(!w){w=document.createElement('div');w.id='tw';w.style.cssText='position:fixed;bottom:20px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:7px';document.body.appendChild(w);}const d=document.createElement('div');const c={ok:'rgba(16,185,129,.15)',err:'rgba(239,68,68,.15)',info:'rgba(14,165,233,.15)'};const b={ok:'rgba(16,185,129,.3)',err:'rgba(239,68,68,.3)',info:'rgba(14,165,233,.3)'};d.style.cssText=`padding:11px 14px;background:${c[type]};border:1px solid ${b[type]};border-radius:9px;font-size:13px;font-weight:600;color:#f0f6fc;font-family:'Manrope',sans-serif;min-width:200px`;d.textContent=({ok:'✓',err:'✗',info:'ℹ'})[type]+'  '+msg;w.appendChild(d);setTimeout(()=>d.remove(),3200);}
+function openM(title,html){let ov=document.getElementById('mov');if(!ov){ov=document.createElement('div');ov.id='mov';ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(6px);z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px';ov.onclick=e=>{if(e.target===ov)closeM();};document.body.appendChild(ov);}ov.innerHTML=`<div style="background:#0d1e2e;border:1px solid rgba(255,255,255,.1);border-radius:18px;padding:26px 22px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto;font-family:'Manrope',sans-serif;color:#f0f6fc"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:17px"><span style="font-family:'Manrope',sans-serif;font-size:16px;font-weight:800">${title}</span><button onclick="closeM()" style="background:none;border:none;color:rgba(255,255,255,.4);font-size:18px;cursor:pointer">✕</button></div>${html}</div>`;ov.style.display='flex';}
+function closeM(){const o=document.getElementById('mov');if(o)o.style.display='none';}
+function tbl(heads,rows){if(!rows.length)return`<div style="padding:24px;text-align:center;color:rgba(255,255,255,.2);font-size:13px">No data</div>`;return`<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse"><thead><tr>${heads.map(h=>`<th style="padding:8px 11px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:rgba(255,255,255,.35);text-align:left;border-bottom:1px solid rgba(255,255,255,.06)">${h}</th>`).join('')}</tr></thead><tbody>${rows.map(r=>`<tr style="border-bottom:1px solid rgba(255,255,255,.03)">${r.map(c=>`<td style="padding:8px 11px;font-size:13px;color:rgba(255,255,255,.72)">${c??'—'}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;}
+function sc(icon,val,lbl,sub,acc='#f59e0b'){return`<div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:13px;padding:16px 18px"><div style="font-size:18px;margin-bottom:7px">${icon}</div><div style="font-size:24px;font-weight:800;font-family:'Manrope',sans-serif;color:${acc}">${val}</div><div style="font-size:13px;font-weight:600;color:#f0f6fc;margin-top:2px">${lbl}</div><div style="font-size:11px;color:rgba(255,255,255,.28);margin-top:1px">${sub}</div></div>`;}
+function pnl(title,content,act=''){return`<div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:13px;padding:18px;margin-bottom:13px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:13px"><div style="font-family:'Manrope',sans-serif;font-size:15px;font-weight:800">${title}</div>${act?`<div>${act}</div>`:''}</div>${content}</div>`;}
+
+let PRICES={'Dry Clean':180,'Wash & Fold':40,'Ironing':20,'Blanket Wash':140,'Duvet Wash':175,'Alterations':120};
+async function loadPrices(){
+  try{
+    const rows=await get('prices','active=eq.true',{select:'service,price',order:'service.asc'});
+    if(rows&&rows.length){PRICES={};rows.forEach(r=>{PRICES[r.service]=parseFloat(r.price);});}
+  }catch(e){console.warn('Price load failed, using defaults');}
+}
+const PAGES=[
+  {id:'shift', icon:'📊',lbl:'My Shift',      sec:'Overview'},
+  {id:'msg',   icon:'💬',lbl:'Messages',      sec:'Overview'},
+  {id:'ann',   icon:'📣',lbl:'Announcements', sec:'Overview'},
+  {id:'kb',    icon:'📚',lbl:'Knowledge Base',sec:'Overview'},
+  {id:'drop',  icon:'➕',lbl:'New Drop-Off',   sec:'Orders'},
+  {id:'queue', icon:'📋',lbl:'Order Queue',    sec:'Orders'},
+  {id:'qr',    icon:'📷',lbl:'QR Scanner',     sec:'Orders'},
+  {id:'look',  icon:'🔍',lbl:'Customer Lookup',sec:'Orders'},
+  {id:'pay',   icon:'💳',lbl:'Collect Payment',sec:'Payment'},
+  {id:'price', icon:'💰',lbl:'Price List',     sec:'Payment'},
+];
+let lastSec='';const sbl=document.getElementById('sbl');
+PAGES.forEach(p=>{if(p.sec!==lastSec){lastSec=p.sec;sbl.innerHTML+=`<div class="sb-sc">${p.sec}</div>`;}sbl.innerHTML+=`<div class="sl" id="sl-${p.id}" onclick="show('${p.id}')"><span style="width:16px;text-align:center">${p.icon}</span><span>${p.lbl}</span></div>`;});
+const ct=document.getElementById('ct');PAGES.forEach(p=>{const d=document.createElement('div');d.className='pg';d.id='p-'+p.id;ct.appendChild(d);});
+
+function show(id){
+  document.querySelectorAll('.pg').forEach(p=>p.style.display='none');
+  const el=document.getElementById('p-'+id);if(el)el.style.display='block';
+  document.querySelectorAll('.sl').forEach(l=>l.classList.toggle('on',l.id==='sl-'+id));
+  document.getElementById('pgt').textContent=PAGES.find(p=>p.id===id)?.lbl||'';
+  stopCam();if(id==='qr')setTimeout(startCam,200);
+  // Init service lines when drop-off section opens
+  if(id==='drop'){if(!svcLines.length)addSvcLine();else renderSvcLines();}
+}
+
+let D={orders:[],customers:[],payments:[],messages:[],kb:[]};
+let ownerId=null;
+
+async function init(){
+  await loadPrices();
+  const [ord,cus,pay,msg,kb,owner]=await Promise.all([
+    get('orders','',{select:'*,customers(id,name,phone)',order:'created_at.desc'}),
+    get('customers','',{order:'name.asc'}),
+    get('payments','',{order:'paid_at.desc'}),
+    get('messages',`or=(to_staff_id.eq.${me.id},from_staff_id.eq.${me.id},to_staff_id.is.null)`,{select:'*,staff!messages_from_staff_id_fkey(name)',order:'sent_at.desc'}),
+    get('knowledge_base','',{select:'*,staff!knowledge_base_created_by_fkey(name)',order:'updated_at.desc'}),
+    get('staff','role=eq.Owner',{select:'id',order:'created_at.asc',limit:'1'}),
+  ]);
+  ownerId=owner?.[0]?.id||null;
+  D={orders:ord||[],customers:cus||[],payments:pay||[],messages:msg||[],kb:kb||[]};
+  rShift();rQueue();rPay();rPrice();rMsg();rAnn();rKb();
+  renderSvcLines();if(!svcLines.length)addSvcLine();
+}
+// ── SHIFT
+function rShift(){
+  const el=document.getElementById('p-shift');
+  const ready=D.orders.filter(o=>o.status==='Ready');
+  const rev=D.payments.reduce((s,p)=>s+(p.total_paid||0),0);
+  el.innerHTML=`
+  <div class="sg">
+    ${sc('📋',D.orders.length,'All Orders','','#38bdf8')}
+    ${sc('✅',ready.length,'Ready','for collection','#10b981')}
+    ${sc('⚙️',D.orders.filter(o=>o.status==='Processing').length,'Processing','','#f59e0b')}
+    ${sc('💰',rnd(rev),'Shift Revenue','','#a78bfa')}
+  </div>
+  ${pnl('✅ Ready — Notify Customers',tbl(['Customer','Phone','Service','Notify'],
+    ready.map(o=>[
+      o.customers?.name||'—',o.customers?.phone||'—',o.service,
+      `<a href="https://wa.me/${(o.customers?.phone||'').replace(/\D/g,'')}?text=${encodeURIComponent('Hi '+o.customers?.name+'! Your order from Oasis Dry Cleaning is ready. Call us: 0735726119')}" target="_blank"><button class="btn bsm" style="background:rgba(37,211,102,.12);border:1px solid rgba(37,211,102,.28);color:#25d366">📱 WhatsApp</button></a>`
+    ])
+  ))}`;
+}
+
+let msgStore={};
+function rMsg(){
+  msgStore={};
+  const el=document.getElementById('p-msg');
+  el.innerHTML=`<div style="display:flex;flex-direction:column;gap:14px">
+    <div>${D.messages.length?D.messages.map((m,i)=>{msgStore[i]=m;return`<div style="display:flex;gap:11px;padding:13px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:11px;margin-bottom:7px">
+      <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#D97706,#F59E0B);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:11px;flex-shrink:0">${(m.staff?.name||'A').slice(0,2).toUpperCase()}</div>
+      <div style="flex:1"><div style="display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:4px"><div><span style="font-size:13px;font-weight:700">${m.staff?.name||'Owner'}</span> <span style="font-size:11px;color:rgba(255,255,255,.55)">${fdt(m.sent_at)} ${ftm(m.sent_at)}</span></div>${m.from_staff_id!==me.id?`<button class="btn bsm" style="background:rgba(14,165,233,.12);border:1px solid rgba(14,165,233,.25);color:#0EA5E9" onclick="replyTo(${i})">Reply</button>`:''}</div><div style="font-size:13px;color:rgba(255,255,255,.75)">${m.body.replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>')}</div></div>
+    </div>`}).join(''):'<div style="padding:24px;text-align:center;color:rgba(255,255,255,.4);font-size:13px">No messages yet</div>'}</div>
+    <div style="padding:15px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:12px">
+      <div style="font-size:13px;font-weight:700;margin-bottom:8px" id="msg-to-label">Send message to Owner</div>
+      <textarea id="msg-body" class="fi" rows="4" style="width:100%;resize:none" placeholder="Type your message"></textarea>
+      <button class="btn bsm" style="margin-top:10px" onclick="sendMsg()">Send →</button>
+    </div>`;
+}
+
+let replyToStaffId=null;
+function replyTo(idx){
+  const m=msgStore[idx];if(!m)return;
+  const body=document.getElementById('msg-body');
+  const label=document.getElementById('msg-to-label');
+  if(!body)return;
+  replyToStaffId=m.from_staff_id||ownerId;
+  const senderName=m.staff?.name||'Owner';
+  body.value=`Reply to ${senderName}:\n> ${m.body.replace(/\n/g,'\n> ')}\n\n`;
+  if(label)label.textContent=`Replying to ${senderName}`;
+  body.focus();
+}
+
+async function sendMsg(){
+  const body=document.getElementById('msg-body')?.value.trim();
+  if(!body){toast('Enter a message','err');return;}
+  const toId=replyToStaffId||ownerId;
+  if(!toId){toast('Recipient not found','err');return;}
+  await post('messages',{from_staff_id:me.id,to_staff_id:toId,body,read:false});
+  toast('Message sent','ok');
+  document.getElementById('msg-body').value='';
+  const label=document.getElementById('msg-to-label');
+  if(label) label.textContent='Send message to Owner';
+  replyToStaffId=null;
+  init();
+}
+
+function rAnn(){
+  const el=document.getElementById('p-ann');
+  const board=D.messages.filter(m=>m.to_staff_id===null||m.to_staff_id===undefined).map(m=>`<div style="padding:13px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:11px;margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><strong>${m.staff?.name||'Staff'}</strong><span style="font-size:11px;color:rgba(255,255,255,.55)">${fdt(m.sent_at)} ${ftm(m.sent_at)}</span></div>
+      <div style="font-size:13px;color:rgba(255,255,255,.78);white-space:pre-wrap">${m.body.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
+    </div>`).join('');
+  el.innerHTML=`<div class="tc">
+    ${pnl('📣 Announcement Board',board||'<div style="padding:24px;text-align:center;color:rgba(255,255,255,.4);font-size:13px">No announcements yet.</div>')}
+    <div style="padding:13px 15px;background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.2);border-radius:10px;font-size:12px;color:rgba(255,255,255,.45)">
+      📣 Only the Owner can post announcements.
+    </div>
+  </div>`;
+}
+
+async function sendAnn(){
+  const body=document.getElementById('ann-body')?.value.trim();
+  if(!body){toast('Enter announcement text','err');return;}
+  await post('messages',{from_staff_id:me.id,to_staff_id:null,body,read:false});
+  toast('Announcement posted','ok');
+  document.getElementById('ann-body').value='';
+  init();
+}
+
+function rKb(){
+  const el=document.getElementById('p-kb');
+  el.innerHTML=`<div style="display:flex;flex-direction:column;gap:14px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <div style="font-size:15px;font-weight:800">Knowledge Base</div>
+      <button class="btn bsm" onclick="openKbEditor()">+ Add Article</button>
+    </div>
+    ${D.kb.length?D.kb.map(k=>`<div style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:14px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:8px"><div><div style="font-size:14px;font-weight:800">${k.title}</div><div style="font-size:11px;color:rgba(255,255,255,.45);margin-top:3px">${k.staff?.name?`<span style="color:rgba(255,255,255,.55)">${k.staff.name}</span> · `:''}${k.updated_at?fdt(k.updated_at):''}</div></div><button class="btn bsm" onclick="openKbEditor('${k.id}')">Edit</button></div>
+      <div style="font-size:13px;color:rgba(255,255,255,.7);white-space:pre-wrap">${k.body.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
+    </div>`).join(''):'<div style="padding:24px;text-align:center;color:rgba(255,255,255,.4);font-size:13px">No knowledge base articles yet.</div>'}
+  </div>`;
+}
+
+
+function openModal(title,html){
+  let ov=document.getElementById('mov');
+  if(!ov){ov=document.createElement('div');ov.id='mov';ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(6px);z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px';ov.onclick=e=>{if(e.target===ov)closeModal();};document.body.appendChild(ov);}
+  ov.innerHTML=`<div style="background:#0d1e2e;border:1px solid rgba(255,255,255,.1);border-radius:18px;padding:26px 22px;width:100%;max-width:540px;max-height:90vh;overflow-y:auto;font-family:'Manrope',sans-serif;color:#f0f6fc">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px"><span style="font-family:'Manrope',sans-serif;font-size:17px;font-weight:800">${title}</span><button onclick="closeModal()" style="background:none;border:none;color:rgba(255,255,255,.4);font-size:18px;cursor:pointer">✕</button></div>${html}</div>`;
+  ov.style.display='flex';
+}
+function closeModal(){const o=document.getElementById('mov');if(o)o.style.display='none';}
+
+function openKbEditor(id=''){
+  const item=D.kb.find(x=>x.id===id)||{title:'',body:''};
+  openModal(`${id?'Edit':'Add'} Knowledge Base Article`,
+    `<div class="fg"><label class="fl">Title</label><input class="fi" id="kb-title" value="${(item.title||'').replace(/"/g,'&quot;')}"></div>
+    <div class="fg"><label class="fl">Content</label><textarea class="fi" id="kb-body" rows="8" style="width:100%;resize:none">${(item.body||'').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</textarea></div>
+    <button class="btn" style="width:100%;margin-top:12px" onclick="saveKb('${id}')">Save Article</button>`
+  );
+}
+
+async function saveKb(id=''){
+  const title=(document.getElementById('kb-title')?.value||'').trim();
+  const body=(document.getElementById('kb-body')?.value||'').trim();
+  if(!title||!body){toast('Enter both title and content','err');return;}
+  if(id){await patch('knowledge_base',`id=eq.${id}`,{title,body});}
+  else{await post('knowledge_base',{title,body,created_by:me.id});}
+  toast('Article saved','ok');
+  closeModal();
+  init();
+}
+
+// ── DROP-OFF
+function setupDrop(){
+  document.getElementById('p-drop').innerHTML=`
+  <div class="tc">
+    ${pnl('➕ New Drop-Off',`
+      <div class="fg"><label class="fl">Search Existing Customer</label>
+        <div style="display:flex;gap:8px"><input class="fi" style="flex:1" id="df-q" placeholder="Name or phone" oninput="srchCust()"><button class="btn bsm bgh" onclick="clrCust()">Clear</button></div>
+        <div id="df-sugg" style="margin-top:6px"></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px">
+        <div class="fg"><label class="fl">First Name *</label><input class="fi" id="df-fn" placeholder="Thandi" oninput="calcAmt()"></div>
+        <div class="fg"><label class="fl">Last Name</label><input class="fi" id="df-ln" placeholder="Nxumalo" oninput="calcAmt()"></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px">
+        <div class="fg"><label class="fl">Phone *</label><input class="fi" id="df-ph" placeholder="0825557890" maxlength="10" inputmode="numeric" oninput="this.value=this.value.replace(/\D/g,'').slice(0,10)"></div>
+        <div class="fg"><label class="fl">Email</label><input class="fi" id="df-em" type="email" placeholder="thandi@email.com"></div>
+      </div>
+      <div style="font-size:10px;color:var(--mut);font-weight:700;text-transform:uppercase;margin-bottom:6px;margin-top:4px">Services *</div>
+      <div id="svc-lines"></div>
+      <button class="btn bsm bgh" style="width:100%;margin-bottom:13px" onclick="addSvcLine()">+ Add Another Service</button>
+      <div class="fg"><label class="fl">Notes</label><input class="fi" id="df-no" placeholder="Special instructions, stains…"></div>
+      <div style="padding:10px 12px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:8px;margin-bottom:13px">
+        <div style="font-size:10px;color:var(--mut);font-weight:700;text-transform:uppercase;margin-bottom:2px">Total Amount</div>
+        <div style="font-size:22px;font-weight:900;color:#f59e0b" id="df-am">R 0.00</div>
+      </div>
+      <label style="display:flex;align-items:flex-start;gap:9px;font-size:12px;color:rgba(255,255,255,.6);margin-bottom:14px;cursor:pointer">
+        <input type="checkbox" id="df-co" style="margin-top:2px">
+        <span>I have verbally informed the customer that their data will be stored by Oasis for order management. <strong style="color:#f0f6fc">(POPIA consent)</strong></span>
+      </label>
+      <button class="btn" style="width:100%" onclick="submitDrop()">Create Order & Generate QR →</button>
+    `)}
+    ${pnl('📋 Preview',`<div id="df-prev" style="color:rgba(255,255,255,.25);font-size:13px;text-align:center;padding:32px 0">Fill in the form to preview</div>`)}
+  </div>`;
+  calcAmt();
+}
+
+function srchCust(){
+  const q=(document.getElementById('df-q')?.value||'').toLowerCase();const box=document.getElementById('df-sugg');
+  if(!q||q.length<2){box.innerHTML='';return;}
+  const m=D.customers.filter(c=>c.name.toLowerCase().includes(q)||c.phone.includes(q)).slice(0,4);
+  box.innerHTML=m.map(c=>`<div onclick="fillCust('${c.id}')" style="padding:8px 10px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:7px;cursor:pointer;font-size:13px;margin-bottom:3px"><strong>${c.name}</strong> · ${c.phone}</div>`).join('');
+}
+function fillCust(id){
+  const c=D.customers.find(x=>x.id===id);if(!c)return;
+  const[fn,...ln]=c.name.split(' ');
+  document.getElementById('df-fn').value=fn||'';
+  document.getElementById('df-ln').value=ln.join(' ')||'';
+  document.getElementById('df-ph').value=c.phone||'';
+  document.getElementById('df-em').value=c.email||'';
+  document.getElementById('df-co').checked=c.consent;
+  document.getElementById('df-sugg').innerHTML='';
+  document.getElementById('df-q').value=c.name;
+  calcAmt();
+}
+function clrCust(){
+  ['df-q','df-fn','df-ln','df-ph','df-em','df-no'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+  document.getElementById('df-co').checked=false;
+  svcLines=[];renderSvcLines();calcAmt();
+}
+// ── MULTI-SERVICE LINES ─────────────────────────────────────────
+let svcLines=[];
+function svcOpts(sel=''){
+  return Object.keys(PRICES).map(s=>`<option${s===sel?' selected':''}>${s}</option>`).join('');
+}
+function addSvcLine(sv='Dry Clean',qt=1){
+  svcLines.push({sv,qt});renderSvcLines();calcAmt();
+}
+function removeSvcLine(i){
+  svcLines.splice(i,1);renderSvcLines();calcAmt();
+}
+function renderSvcLines(){
+  const box=document.getElementById('svc-lines');if(!box)return;
+  if(svcLines.length===0){
+    box.innerHTML='';addSvcLine();return;
+  }
+  box.innerHTML=svcLines.map((l,i)=>`
+    <div style="display:grid;grid-template-columns:1fr 80px 32px;gap:7px;margin-bottom:7px;align-items:center">
+      <select class="fi" style="margin:0" onchange="svcLines[${i}].sv=this.value;calcAmt()">${svcOpts(l.sv)}</select>
+      <input class="fi" style="margin:0;text-align:center" type="number" value="${l.qt}" min="1"
+        oninput="svcLines[${i}].qt=parseInt(this.value)||1;calcAmt()">
+      <button class="btn bsm" style="margin:0;padding:0;width:32px;height:36px;background:rgba(239,68,68,.15);color:#ef4444;border:1px solid rgba(239,68,68,.25)"
+        onclick="removeSvcLine(${i})" ${svcLines.length===1?'disabled':''}>✕</button>
+    </div>`).join('');
+}
+function calcAmt(){
+  const total=svcLines.reduce((s,l)=>s+(PRICES[l.sv]||0)*l.qt,0);
+  const el=document.getElementById('df-am');if(el)el.textContent=rnd(total);
+  const prev=document.getElementById('df-prev');
+  if(prev&&svcLines.length){
+    const fn=(document.getElementById('df-fn')?.value||'').trim(),ln=(document.getElementById('df-ln')?.value||'').trim();
+    const name=fn||ln?`${fn} ${ln}`.trim():'Customer';
+    const lines=svcLines.map(l=>`<div style="font-size:13px;color:rgba(255,255,255,.7);margin-bottom:3px">${l.sv} × ${l.qt} — ${rnd((PRICES[l.sv]||0)*l.qt)}</div>`).join('');
+    prev.innerHTML=`<div style="text-align:center"><div style="font-size:15px;font-weight:800;margin-bottom:8px">${name}</div>${lines}<div style="font-size:26px;font-weight:900;color:#f59e0b;margin-top:10px">${rnd(total)}</div></div>`;
+  }
+}
+async function submitDrop(){
+  const fn=(document.getElementById('df-fn')?.value||'').trim();
+  const ln=(document.getElementById('df-ln')?.value||'').trim();
+  const ph=(document.getElementById('df-ph')?.value||'').trim();
+  const em=(document.getElementById('df-em')?.value||'').trim();
+  const no=(document.getElementById('df-no')?.value||'').trim();
+  const co=document.getElementById('df-co')?.checked;
+  if(!fn){toast('First name required','err');return;}
+  if(!ph){toast('Phone required','err');return;}
+  // SA mobile: 06x/07x/08x (10 digits) or +27 6x/7x/8x (11 digits), spaces/dashes OK
+  const phClean=ph.replace(/[\s\-()]/g,'');
+  if(!/^0[6-8][0-9]{8}$/.test(phClean)){toast('Enter a valid 10-digit SA mobile number starting with 06x, 07x, or 08x','err');return;}
+  if(em&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)){toast('Enter a valid email address','err');return;}
+  if(!co){toast('POPIA consent required — inform the customer first','err');return;}
+  if(!svcLines.length){toast('Add at least one service','err');return;}
+  const name=`${fn} ${ln}`.trim();
+
+  // Refresh customer list first so we don't miss/duplicate against stale cache
+  const freshCust=await get('customers','',{order:'name.asc'});
+  if(freshCust)D.customers=freshCust;
+
+  // Find or create customer
+  let cust=D.customers.find(c=>c.phone===ph||c.phone===phClean);
+  if(!cust){
+    const rows=await post('customers',{name,phone:phClean,email:em||null,consent:true,loyalty_pts:0,status:'Active'});
+    cust=(rows&&rows[0])||{};
+  } else {
+    await patch('customers','id=eq.'+cust.id,{consent:true,email:em||cust.email||null});
+  }
+  if(!cust.id){toast('Failed to create customer','err');return;}
+
+  const totalAmt=svcLines.reduce((s,l)=>s+(PRICES[l.sv]||0)*l.qt,0);
+
+  // Create one order per service line
+  const createdOrders=[];
+  const failedLines=[];
+  for(const l of svcLines){
+    const price=(PRICES[l.sv]||0)*l.qt;
+    const itemsDesc=l.sv+' × '+l.qt;
+    try{
+      const rows=await post('orders',{
+        customer_id:cust.id,staff_id:me.id,
+        service:l.sv,items:itemsDesc,
+        status:'Received',amount:price,discount:0,
+        qr_code:'pending',notes:no
+      });
+      const order=(rows&&rows[0])||{};
+      if(order.id){
+        const qrData='OASIS:'+order.id+':'+name+':'+l.sv;
+        await patch('orders','id=eq.'+order.id,{qr_code:order.id});
+        order.qr_code=qrData;
+        createdOrders.push({...order,_svcLabel:l.sv+(l.qt>1?' × '+l.qt:'')});
+      } else {
+        failedLines.push(l.sv);
+      }
+    }catch(e){
+      failedLines.push(l.sv);
+    }
+  }
+
+  if(failedLines.length){
+    toast('⚠️ Failed to save: '+failedLines.join(', ')+' — check connection and retry','err');
+  }
+
+  // Single audit log entry summarising all services
+  const svcSummary=svcLines.map(l=>l.sv+(l.qt>1?' ×'+l.qt:'')).join(', ');
+  await post('audit_logs',{staff_id:me.id,action:'Order Created',
+    detail:name+' — '+svcSummary+' — '+rnd(totalAmt)+(createdOrders.length>1?' ('+createdOrders.length+' orders)':'')});
+
+  if(createdOrders.length===0){toast('No orders were saved — please try again','err');return;}
+
+  toast('✓ '+createdOrders.length+' order'+(createdOrders.length>1?'s':'')+' created for '+name+' — '+createdOrders.map(o=>o._svcLabel).join(', '),'ok');
+
+  // Show a label for EACH order so nothing gets missed
+  if(createdOrders.length===1){
+    const o=createdOrders[0];
+    showQRLabel(o.id,name,o._svcLabel,o.items,o.qr_code,'');
+  } else {
+    // Build a multi-label modal showing all orders for this drop-off
+    showMultiQRLabel(createdOrders,name);
+  }
+
+  // Reset form
+  svcLines=[];renderSvcLines();
+  ['df-q','df-fn','df-ln','df-ph','df-em','df-no'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+  document.getElementById('df-co').checked=false;
+  calcAmt();init();
+}
+
+
+function showQRLabel(oid,name,svc,items,qrData,labelNote=''){
+  openM('🏷️ Garment Label',`
+    <div style="display:flex;flex-direction:column;align-items:center;gap:15px">
+      <div style="width:220px;background:linear-gradient(160deg,#29b6e8,#0ea5e9,#0284c7);border-radius:17px;padding:18px 14px 20px;text-align:center;color:#fff;box-shadow:0 10px 36px rgba(14,165,233,.4)">
+        <div style="font-size:13px;font-weight:800;margin-bottom:2px">Oasis Dry Cleaning & Laundry</div>
+        <div style="font-size:10px;opacity:.7;margin-bottom:11px">0735726119 · Glenwood, Durban</div>
+        <div id="qrl" style="background:#fff;padding:7px;border-radius:9px;display:inline-block;margin-bottom:11px"></div>
+        <div style="font-size:15px;font-weight:900">${oid.slice(0,8).toUpperCase()}</div>
+        <div style="font-size:12px;font-weight:700;margin-top:2px">${name}</div>
+        <div style="font-size:10px;opacity:.8;margin-top:2px">${svc}</div>
+        ${labelNote?`<div style="font-size:10px;color:#fde68a;margin-top:4px;font-weight:700">${labelNote}</div>`:''}
+      </div>
+      <div style="display:flex;gap:9px">
+        <button onclick="printLbl('${oid}','${name.replace(/'/g,'')}','${svc}','${items.replace(/'/g,'')}','${qrData.replace(/'/g,'')}')" class="btn bsm">🖨️ Print</button>
+        <button onclick="closeM()" class="btn bsm bgh">Close</button>
+      </div>
+    </div>`);
+  setTimeout(()=>{const el=document.getElementById('qrl');if(el&&typeof QRCode!=='undefined')new QRCode(el,{text:qrData,width:130,height:130,colorDark:'#0c4a6e',colorLight:'#fff'});},150);
+}
+
+function showMultiQRLabel(orders,name){
+  // Build one label card per order so staff can print each one
+  const cards=orders.map((o,i)=>`
+    <div style="display:flex;flex-direction:column;align-items:center;gap:10px;padding:15px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:13px">
+      <div style="font-size:12px;font-weight:800;color:#38bdf8">Order ${i+1} of ${orders.length} — ${o._svcLabel}</div>
+      <div style="width:180px;background:linear-gradient(160deg,#29b6e8,#0ea5e9,#0284c7);border-radius:14px;padding:14px 12px 16px;text-align:center;color:#fff">
+        <div style="font-size:11px;font-weight:800;margin-bottom:1px">Oasis Dry Cleaning & Laundry</div>
+        <div style="font-size:9px;opacity:.7;margin-bottom:9px">0735726119 · Glenwood, Durban</div>
+        <div id="qrl${i}" style="background:#fff;padding:6px;border-radius:8px;display:inline-block;margin-bottom:9px"></div>
+        <div style="font-size:13px;font-weight:900">${o.id.slice(0,8).toUpperCase()}</div>
+        <div style="font-size:11px;font-weight:700;margin-top:1px">${name}</div>
+        <div style="font-size:9px;opacity:.85;margin-top:1px">${o._svcLabel}</div>
+      </div>
+      <button onclick="printLbl('${o.id}','${name.replace(/'/g,'')}','${o._svcLabel}','${(o.items||'').replace(/'/g,'')}','${(o.qr_code||'').replace(/'/g,'')}'')" class="btn bsm" style="width:100%">🖨️ Print Label ${i+1}</button>
+    </div>`).join('');
+
+  openM(`🏷️ ${orders.length} Garment Labels — ${name}`,`
+    <div style="background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);border-radius:9px;padding:10px 13px;margin-bottom:14px;font-size:12px;color:#fcd34d;font-weight:700">
+      ⚠️ Print one label per garment — attach each to the correct item before sending to cleaning.
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:13px">${cards}</div>
+    <button onclick="closeM()" class="btn bsm bgh" style="width:100%;margin-top:14px">Done</button>`);
+
+  // Render QR codes for each label
+  setTimeout(()=>{
+    orders.forEach((o,i)=>{
+      const el=document.getElementById('qrl'+i);
+      if(el&&typeof QRCode!=='undefined') new QRCode(el,{text:o.qr_code,width:110,height:110,colorDark:'#0c4a6e',colorLight:'#fff'});
+    });
+  },200);
+}
+
+function printLbl(id,name,svc,items,qrData){
+  const w=window.open('','_blank');
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@500;700;800&display=swap" rel="stylesheet"><style>@page{size:54mm 85mm;margin:0}body{margin:0;display:flex;align-items:center;justify-content:center;min-height:100vh}.card{width:54mm;min-height:85mm;background:linear-gradient(160deg,#29b6e8,#0ea5e9,#0284c7);border-radius:6mm;display:flex;flex-direction:column;align-items:center;padding:5mm 4mm 6mm;font-family:'Manrope',sans-serif;color:#fff;text-align:center;box-sizing:border-box}.biz{font-size:4mm;font-weight:800;margin-bottom:1mm}.sub{font-size:2.8mm;opacity:.8;margin-bottom:3mm}.qr{background:#fff;padding:2mm;border-radius:2.5mm;display:inline-block;margin-bottom:3mm}.oid{font-size:5mm;font-weight:900;margin-bottom:1mm}.cust{font-size:3.5mm;font-weight:700;margin-bottom:1mm}.svc{font-size:3mm;opacity:.85}</style></head><body><div class="card"><div class="biz">Oasis Dry Cleaning &amp; Laundry</div><div class="sub">0735726119 · Glenwood, Durban</div><div class="qr" id="qp"></div><div class="oid">${id.slice(0,8).toUpperCase()}</div><div class="cust">${name}</div><div class="svc">${svc} — ${items}</div></div><script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"><\/script><script>new QRCode(document.getElementById('qp'),{text:'${qrData}',width:110,height:110,colorDark:'#0c4a6e',colorLight:'#fff'});setTimeout(()=>window.print(),700);<\/script></body></html>`);
+  w.document.close();
+}
+
+// ── QUEUE
+function rQueue(){
+  const active=D.orders.filter(o=>o.status!=='Collected');
+
+  // Group by customer_id, preserving newest-first order within each group
+  const groups={};
+  const groupOrder=[];
+  active.forEach(o=>{
+    const cid=o.customer_id||'unknown';
+    if(!groups[cid]){groups[cid]=[];groupOrder.push(cid);}
+    groups[cid].push(o);
+  });
+
+  if(!groupOrder.length){
+    document.getElementById('p-queue').innerHTML=pnl('📋 Active Orders','<div style="padding:24px;text-align:center;color:rgba(255,255,255,.2);font-size:13px">No active orders</div>');
+    return;
+  }
+
+  const html=groupOrder.map(cid=>{
+    const orders=groups[cid];
+    const cust=orders[0].customers||{};
+    const total=orders.reduce((s,o)=>s+(parseFloat(o.amount)||0),0);
+    const allReady=orders.every(o=>o.status==='Ready');
+    const anyReady=orders.some(o=>o.status==='Ready');
+    const dropDate=fdt(orders[orders.length-1].created_at);
+
+    // Status summary badge for the group header
+    const statuses=[...new Set(orders.map(o=>o.status))];
+    const headerBadge=allReady?bdg('Ready'):statuses.length===1?bdg(statuses[0]):bdg('Mixed','#a78bfa');
+
+    // Rows for each order in this group
+    const rows=orders.map(o=>`
+      <tr style="border-bottom:1px solid rgba(255,255,255,.04)">
+        <td style="padding:9px 12px;font-family:monospace;font-size:11px;color:#38bdf8">${o.id.slice(0,8)}</td>
+        <td style="padding:9px 12px;font-size:13px;color:rgba(255,255,255,.72)">${o.service}</td>
+        <td style="padding:9px 12px;font-size:13px;color:rgba(255,255,255,.72)">${o.items}</td>
+        <td style="padding:9px 12px">${bdg(o.status)}</td>
+        <td style="padding:9px 12px;font-size:13px;font-weight:700;color:#f59e0b">${rnd(o.amount)}</td>
+        <td style="padding:9px 12px">
+          ${o.status==='Ready'
+            ?`<a href="https://wa.me/${(cust.phone||'').replace(/\D/g,'')}?text=${encodeURIComponent('Hi '+cust.name+'! Your '+o.service+' order is ready at Oasis. 0735726119')}" target="_blank"><button class="btn bsm" style="background:rgba(37,211,102,.12);border:1px solid rgba(37,211,102,.28);color:#25d366">📱</button></a>`
+            :`<button class="btn bsm bgh" onclick="showQRLabel('${o.id}','${(cust.name||'').replace(/'/g,'')}','${o.service}','${o.items.replace(/'/g,'')}','${(o.qr_code||'').replace(/'/g,'')}')">🏷️</button>`
+          }
+        </td>
+      </tr>`).join('');
+
+    return`<div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:13px;margin-bottom:11px;overflow:hidden">
+      <!-- Customer header -->
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:11px 14px;background:rgba(255,255,255,.04);border-bottom:1px solid rgba(255,255,255,.07);flex-wrap:wrap;gap:8px">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#D97706,#F59E0B);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:11px;flex-shrink:0">${(cust.name||'?').slice(0,2).toUpperCase()}</div>
+          <div>
+            <div style="font-size:14px;font-weight:800">${cust.name||'Unknown'}</div>
+            <div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:1px">📅 ${dropDate} · ${orders.length} order${orders.length>1?'s':''} · 📞 ${cust.phone||'—'}</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          ${headerBadge}
+          <div style="font-size:18px;font-weight:900;color:#f59e0b">${rnd(total)}</div>
+          ${anyReady?`<a href="https://wa.me/${(cust.phone||'').replace(/\D/g,'')}?text=${encodeURIComponent('Hi '+cust.name+'! Your order is ready at Oasis Dry Cleaning. 0735726119')}" target="_blank"><button class="btn bsm" style="background:rgba(37,211,102,.12);border:1px solid rgba(37,211,102,.28);color:#25d366;font-size:11px">📱 Notify</button></a>`:''}
+        </div>
+      </div>
+      <!-- Orders table -->
+      <div style="overflow-x:auto">
+        <table style="width:100%;border-collapse:collapse">
+          <thead><tr>${['ID','Service','Items','Status','Amount','Action'].map(h=>`<th style="padding:7px 12px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:rgba(255,255,255,.3);text-align:left;border-bottom:1px solid rgba(255,255,255,.05)">${h}</th>`).join('')}</tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('p-queue').innerHTML=`
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:13px">
+      <div style="font-size:15px;font-weight:800">📋 Active Orders <span style="font-size:13px;font-weight:500;color:rgba(255,255,255,.4)">${groupOrder.length} customer${groupOrder.length!==1?'s':''} · ${active.length} order${active.length!==1?'s':''}</span></div>
+    </div>
+    ${html}`;
+}
+
+// ── QR SCANNER
+let camLocked=false;
+// ── ZXing scanner ────────────────────────────────────────────────────────────
+let zxReader=null;
+
+function startCam(){
+  const vid=document.getElementById('cv');if(!vid)return;
+  const cs=document.getElementById('cs');
+  if(!window.ZXing){
+    if(cs)cs.textContent='Scanner library not loaded — refresh and try again.';
+    showQRUpload();return;
+  }
+  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){
+    if(cs)cs.textContent='Camera API not available — use manual entry or upload a QR image.';
+    showQRUpload();return;
+  }
+  zxReader=new ZXing.BrowserMultiFormatReader();
+  // Prefer rear camera; ZXing picks the best available device automatically
+  zxReader.listVideoInputDevices().then(devices=>{
+    const rear=devices.find(d=>/back|rear|environment/i.test(d.label))||devices[devices.length-1];
+    const deviceId=rear?rear.deviceId:undefined;
+    if(cs)cs.innerHTML='<span style="color:#10b981">&#9679; Camera active</span> — hold QR label steady';
+    zxReader.decodeFromVideoDevice(deviceId,'cv',(result,err)=>{
+      if(!result)return;
+      if(camLocked)return;
+      camLocked=true;
+      if(navigator.vibrate)navigator.vibrate(80);
+      const raw=result.getText().startsWith('OASIS:')?result.getText().split(':')[1]:result.getText();
+      handleScan(raw);
+      setTimeout(()=>{camLocked=false;},4000);
+    });
+  }).catch(err=>{
+    if(err&&(err.name==='NotAllowedError'||err.name==='PermissionDeniedError')){
+      if(cs)cs.textContent='Camera permission denied — allow camera access in your browser settings, or use the options below.';
+    } else {
+      if(cs)cs.textContent='Camera unavailable — use manual entry or upload a QR image below.';
+    }
+    showQRUpload();
+  });
+}
+
+function showQRUpload(){
+  const up=document.getElementById('qr-upload-wrap');
+  if(up)up.style.display='block';
+}
+
+function scanUploadedQR(input){
+  const file=input.files&&input.files[0];if(!file)return;
+  if(!window.ZXing){toast('Scanner library not loaded','err');return;}
+  const reader=new FileReader();
+  reader.onload=function(e){
+    const img=new Image();
+    img.onload=function(){
+      const cvs=document.createElement('canvas');
+      cvs.width=img.width;cvs.height=img.height;
+      cvs.getContext('2d').drawImage(img,0,0);
+      const r=new ZXing.BrowserMultiFormatReader();
+      r.decodeFromCanvas(cvs).then(result=>{
+        const raw=result.getText().startsWith('OASIS:')?result.getText().split(':')[1]:result.getText();
+        handleScan(raw);
+      }).catch(()=>toast('No QR code found in image','err'));
+    };
+    img.src=e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function stopCam(){
+  if(zxReader){zxReader.reset();zxReader=null;}
+  camLocked=false;
+  const cs=document.getElementById('cs');
+  if(cs)cs.innerHTML='Tap Scan to activate camera';
+}
+function handleScan(raw){
+  raw=(raw||'').trim();
+  if(/^OASIS:/i.test(raw))raw=raw.split(':')[1]||raw;
+  raw=raw.toLowerCase();
+  const order=D.orders.find(o=>
+    o.id.toLowerCase()===raw||
+    o.id.toLowerCase().slice(0,8)===raw||
+    raw.startsWith(o.id.toLowerCase())||
+    (o.qr_code||'').toLowerCase().includes(raw)
+  );
+  const res=document.getElementById('sr');if(!res)return;
+  if(!order){res.innerHTML=`<div style="padding:11px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);border-radius:8px;color:#ef4444;font-size:13px">Not found: "${raw}"</div>`;return;}
+  const c=order.customers||{};
+  res.innerHTML=`<div style="padding:13px;background:rgba(255,255,255,.04);border:1px solid rgba(56,189,248,.2);border-radius:10px">
+    <div style="font-size:15px;font-weight:800;margin-bottom:5px">${order.id.slice(0,8).toUpperCase()} — ${bdg(order.status)}</div>
+    <div style="font-size:13px;color:rgba(255,255,255,.6);margin-bottom:10px">${c.name||'—'} · ${order.service} · ${order.items}</div>
+    <div style="display:flex;gap:7px;flex-wrap:wrap">
+      <button class="btn bsm" style="background:linear-gradient(135deg,#0284C7,#0EA5E9)" onclick="showQRLabel('${order.id}','${(c.name||'').replace(/'/g,'')}','${order.service}','${order.items.replace(/'/g,'')}','${(order.qr_code||'').replace(/'/g,'')}')">🏷️ Label</button>
+      ${order.status==='Ready'?`<a href="https://wa.me/${(c.phone||'').replace(/\D/g,'')}?text=${encodeURIComponent('Hi '+c.name+'! Your order is ready at Oasis. 0735726119')}" target="_blank"><button class="btn bsm" style="background:rgba(37,211,102,.12);border:1px solid rgba(37,211,102,.28);color:#25d366">📱 WhatsApp</button></a>`:''}
+    </div>
+  </div>`;
+}
+function setupQR(){
+  document.getElementById('p-qr').innerHTML=pnl('📷 QR Scanner',`
+    <div class="cam"><video id="cv" playsinline autoplay muted></video><canvas id="cc"></canvas></div>
+    <div id="cs" style="font-size:12px;color:var(--mut);margin-bottom:9px;text-align:center">Tap Scan to activate camera</div>
+    <div style="display:flex;gap:7px;margin-bottom:8px"><button class="btn bsm" onclick="startCam()">▶ Scan</button><button class="btn bsm bgh" onclick="stopCam()">⏹ Stop</button></div>
+    <div id="qr-upload-wrap" style="display:none;margin-top:10px;padding:11px 13px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:9px">
+      <div style="font-size:11px;color:var(--mut);font-weight:700;text-transform:uppercase;margin-bottom:7px">📁 Scan from Image</div>
+      <input type="file" accept="image/*" onchange="scanUploadedQR(this)" style="font-size:12px;color:rgba(255,255,255,.7);width:100%">
+    </div>
+    <div class="fg"><label class="fl">Manual Entry</label>
+      <div style="display:flex;gap:7px"><input class="fi" style="flex:1" id="mi" placeholder="Order ID"><button class="btn bsm" onclick="handleScan(document.getElementById('mi').value.trim())">Look Up</button></div>
+    </div>
+    <div id="sr"></div>`);
+}
+
+// ── LOOKUP
+function setupLookup(){
+  document.getElementById('p-look').innerHTML=`
+  <div class="fg" style="max-width:400px"><label class="fl">Search</label>
+    <div style="display:flex;gap:7px"><input class="fi" style="flex:1" id="lu" placeholder="Name or phone"><button class="btn bsm" onclick="doLookup()">Search</button></div>
+  </div><div id="lr"></div>`;
+}
+function doLookup(){
+  const q=(document.getElementById('lu')?.value||'').toLowerCase();const res=document.getElementById('lr');if(!q)return;
+  const m=D.customers.filter(c=>c.name.toLowerCase().includes(q)||c.phone.includes(q));
+  if(!m.length){res.innerHTML='<div style="color:rgba(255,255,255,.25);padding:16px;font-size:13px">No customers found.</div>';return;}
+  res.innerHTML=m.map(c=>{
+    const ords=D.orders.filter(o=>o.customer_id===c.id);
+    return`<div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:13px;padding:18px;margin-bottom:10px">
+      <div style="font-size:15px;font-weight:800;margin-bottom:10px">${c.name}</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:13px;margin-bottom:12px">
+        <div><span style="color:var(--mut)">Phone:</span> ${c.phone}</div>
+        <div><span style="color:var(--mut)">Email:</span> ${c.email||'<span style="color:rgba(255,255,255,.25)">not set</span>'}</div>
+        <div><span style="color:var(--mut)">POPIA:</span> ${c.consent?'<span style="color:#10b981">✓ Given</span>':'<span style="color:#ef4444">✗ No</span>'}</div>
+        <div><span style="color:var(--mut)">Loyalty:</span> <strong style="color:#a78bfa">${c.loyalty_pts} pts</strong></div>
+      </div>
+      ${tbl(['Order','Service','Status','Amount'],ords.map(o=>[o.id.slice(0,8),o.service,bdg(o.status),rnd(o.amount)]))}
+    </div>`;
+  }).join('');
+}
+
+// ── PAYMENT
+let payId=null;
+function rPay(){
+  const rev=D.payments.reduce((s,p)=>s+(p.total_paid||0),0);
+  document.getElementById('p-pay').innerHTML=`
+  <div class="tc">
+    ${pnl('💳 Collect Payment',`
+      <div class="fg"><label class="fl">Order ID</label>
+        <div style="display:flex;gap:7px"><input class="fi" style="flex:1" id="pid" placeholder="Enter order ID" oninput="payLookup()"><button class="btn bsm" onclick="payLookup()">Find</button></div>
+      </div>
+      <div id="pinf" style="display:none;padding:9px 11px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:8px;margin-bottom:8px;font-size:13px"></div>
+      <div id="loy-suggest" style="display:none;padding:9px 12px;background:rgba(252,211,77,.06);border:1px solid rgba(252,211,77,.2);border-radius:8px;margin-bottom:12px;font-size:12px;color:rgba(255,255,255,.6)"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px">
+        <div class="fg"><label class="fl">Amount (ZAR)</label><input class="fi" type="number" id="pamt" oninput="calcTot()"></div>
+        <div class="fg"><label class="fl">Discount %</label><input class="fi" type="number" id="pdisc" value="0" min="0" max="100" oninput="calcTot()"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:11px 13px;background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);border-radius:8px;margin-bottom:12px">
+        <div><div style="font-size:10px;color:var(--mut);font-weight:700;text-transform:uppercase">Total After Discount</div>
+        <div style="font-size:22px;font-weight:900;color:#f59e0b" id="ptot">R 0.00</div></div>
+        <div id="pbdg" style="display:none;font-size:11px;color:#10b981;font-weight:700"></div>
+      </div>
+      <div class="fg"><label class="fl">Method</label>
+        <select class="fi" id="pmth"><option>Cash</option><option>Card</option><option>EFT</option><option>SnapScan</option></select>
+      </div>
+      <button class="btn" style="width:100%" onclick="collectPay()">Collect & Mark Collected →</button>
+    `)}
+    ${pnl('📜 History',
+      tbl(['Order','Method','Amount','Disc','Total','Date & Time'],
+        D.payments.slice(0,10).map(p=>[
+          p.order_id?.slice(0,8)||'—',bdg(p.method,'#38bdf8'),rnd(p.amount),
+          p.discount_pct?p.discount_pct+'%':'—',`<strong style="color:#10b981">${rnd(p.total_paid)}</strong>`,fdt(p.paid_at)+' '+ftm(p.paid_at)
+        ])
+      )+`<div style="margin-top:11px;padding-top:10px;border-top:1px solid rgba(255,255,255,.06);display:flex;justify-content:space-between">
+        <span style="font-size:12px;color:var(--mut)">Shift Total</span>
+        <span style="font-size:20px;font-weight:900;color:#f59e0b">${rnd(rev)}</span>
+      </div>`
+    )}
+  </div>`;
+}
+function payLookup(){
+  const val=(document.getElementById('pid')?.value||'').trim().toLowerCase();const inf=document.getElementById('pinf');
+  if(!val||!inf)return;
+  const o=D.orders.find(o=>o.id.toLowerCase().slice(0,8)===val||o.id.toLowerCase()===val);
+  if(!o){inf.style.display='block';inf.style.color='#ef4444';inf.textContent='Order not found.';payId=null;return;}
+  payId=o.id;inf.style.display='block';inf.style.color='rgba(255,255,255,.65)';
+  inf.innerHTML=`<strong style="color:#f0f6fc">${o.id.slice(0,8)}</strong> · ${o.customers?.name||'—'} · ${o.service}`;
+
+  // Auto-suggest loyalty discount
+  const cust=D.customers.find(c=>c.id===o.customer_id);
+  const pts=cust?.loyalty_pts||0;
+  const suggestedDisc=pts>=500?15:pts>=300?10:pts>0?5:0;
+  const tier=pts>=500?'🥇 Gold':pts>=300?'🥈 Silver':pts>0?'🥉 Bronze':'';
+  const loyEl=document.getElementById('loy-suggest');
+  if(loyEl){
+    if(suggestedDisc>0){
+      loyEl.style.display='block';
+      loyEl.innerHTML=`⭐ <strong style="color:#fcd34d">${tier}</strong> customer — <strong style="color:#f0f6fc">${pts} pts</strong> → apply <strong style="color:#10b981">${suggestedDisc}% loyalty discount?</strong>
+        <button onclick="document.getElementById('pdisc').value='${suggestedDisc}';calcTot()" style="margin-left:8px;padding:3px 10px;background:rgba(16,185,129,.15);border:1px solid rgba(16,185,129,.3);border-radius:6px;color:#10b981;font-family:'Manrope',sans-serif;font-size:11px;font-weight:700;cursor:pointer">Apply ${suggestedDisc}%</button>`;
+    } else {
+      loyEl.style.display=pts===0?'block':'none';
+      if(pts===0) loyEl.innerHTML=`👤 No loyalty points yet — <span style="color:rgba(255,255,255,.4)">discount not applicable</span>`;
+    }
+  }
+
+  const ae=document.getElementById('pamt');if(ae)ae.value=o.amount;
+  calcTot();
+}
+function calcTot(){
+  const amt=parseFloat(document.getElementById('pamt')?.value)||0;
+  const disc=Math.min(Math.max(parseFloat(document.getElementById('pdisc')?.value)||0,0),100);
+  const fin=Math.round(amt*(1-disc/100)*100)/100;
+  const tel=document.getElementById('ptot'),bel=document.getElementById('pbdg');
+  if(tel)tel.textContent=rnd(fin);
+  if(bel){if(disc>0){bel.style.display='block';bel.textContent=disc+'% off — saving '+rnd(Math.round((amt-fin)*100)/100);}else bel.style.display='none';}
+}
+async function collectPay(){
+  const amt=parseFloat(document.getElementById('pamt')?.value)||0;
+  const disc=parseFloat(document.getElementById('pdisc')?.value)||0;
+  const mth=document.getElementById('pmth')?.value||'Cash';
+  const fin=Math.round(amt*(1-disc/100)*100)/100;
+  if(!payId){toast('Look up an order first','err');return;}
+
+  // Guard against duplicate payment
+  const existingPay=await get('payments','order_id=eq.'+payId,{limit:'1'});
+  if(existingPay&&existingPay.length>0){toast('Payment already collected for this order','err');return;}
+
+  // Disable button immediately to prevent double-click
+  const btn=document.querySelector('#p-pay .btn[onclick="collectPay()"]');
+  if(btn){btn.disabled=true;btn.textContent='Processing…';}
+
+  await post('payments',{order_id:payId,staff_id:me.id,method:mth,amount:amt,discount_pct:disc,total_paid:fin});
+  await patch('orders','id=eq.'+payId,{status:'Collected'});
+
+  // Award loyalty points: 1 pt per R10 spent — saved directly to customer record
+  const ptsEarned=Math.floor(fin/10);
+  if(ptsEarned>0){
+    const order=D.orders.find(o=>o.id===payId);
+    if(order&&order.customer_id){
+      const custArr=await get('customers','id=eq.'+order.customer_id,{select:'id,loyalty_pts'});
+      const cust=custArr&&custArr[0];
+      if(cust){await patch('customers','id=eq.'+cust.id,{loyalty_pts:(cust.loyalty_pts||0)+ptsEarned});}
+    }
+  }
+  await post('audit_logs',{staff_id:me.id,action:'Payment Collected',
+    detail:'#'+payId.slice(0,8)+' — '+rnd(fin)+' ('+mth+')'+(disc>0?' ['+disc+'% disc]':'')+(ptsEarned>0?' · +'+ptsEarned+' loyalty pts':'')});
+
+  toast('Payment '+rnd(fin)+' collected'+(ptsEarned>0?' · +'+ptsEarned+' loyalty pts 🌟':''),'ok');
+  payId=null;['pid','pamt','pdisc'].forEach(id=>{const e=document.getElementById(id);if(e)e.value=id==='pdisc'?'0':'';});
+  document.getElementById('pinf').style.display='none';
+  const ls=document.getElementById('loy-suggest');if(ls)ls.style.display='none';
+  calcTot();init();
+}
+
+// ── PRICE LIST
+function rPrice(){
+  document.getElementById('p-price').innerHTML=pnl('💰 Price List',
+    tbl(['Service','Unit','Price'],Object.entries(PRICES).map(([s,p])=>[`<span style="font-weight:700">${s}</span>`,'per item',`<span style="font-weight:800;color:#f59e0b">${rnd(p)}</span>`]))
+  );
+}
+
+function bulkWA(){
+  const ready=D.orders.filter(o=>o.status==='Ready');
+  if(!ready.length){toast('No ready orders','info');return;}
+  ready.forEach((o,i)=>setTimeout(()=>{
+    const ph=(o.customers?.phone||'').replace(/\D/g,'');
+    if(ph)window.open('https://wa.me/'+ph+'?text='+encodeURIComponent('Hi '+o.customers?.name+'! Your order is ready at Oasis Dry Cleaning & Laundry. 0735726119'),'_blank');
+  },i*600));
+  toast('Opened WhatsApp for '+ready.length+' customers','ok');
+}
+
+init();setupDrop();setupQR();setupLookup();show('shift');
+</script>
+</body></html>

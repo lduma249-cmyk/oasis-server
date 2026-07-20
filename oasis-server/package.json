@@ -1,0 +1,16 @@
+{
+  "name": "oasis-laundry-system",
+  "version": "1.0.0",
+  "description": "Oasis Laundry Management System — Glenwood",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": ["oasis", "laundry", "pos", "management"],
+  "author": "Oasis Glenwood",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^5.2.1"
+  }
+}

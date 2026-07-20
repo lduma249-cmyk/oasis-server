@@ -1,0 +1,1309 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Oasis — Owner</title>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#07111b;--panel:rgba(255,255,255,.03);--bdr:rgba(255,255,255,.07);--sky:#0EA5E9;--wht:#F0F6FC;--mut:#64748B;--acc:#0EA5E9}
+html,body{height:100%;background:var(--bg);color:var(--wht);font-family:'Manrope',sans-serif;overflow:hidden}
+.lay{display:flex;height:100vh}
+.sb{width:216px;flex-shrink:0;background:rgba(255,255,255,.02);border-right:1px solid var(--bdr);display:flex;flex-direction:column;overflow-y:auto}
+.sb-hd{padding:18px 14px 14px;border-bottom:1px solid var(--bdr)}
+.sb-logo{display:flex;align-items:center;gap:10px}
+.sb-ic{width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,#0EA5E9,#0D9488);display:flex;align-items:center;justify-content:center;font-size:15px}
+.sb-logo-img{width:34px;height:34px;border-radius:12px;object-fit:cover;box-shadow:0 4px 18px rgba(0,0,0,.25)}
+.sb-nm{font-family:'Manrope',sans-serif;font-size:13px;font-weight:800}
+.sb-rl{font-size:10px;color:var(--mut)}
+.sb-sc{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.2);padding:12px 14px 3px}
+.sl{display:flex;align-items:center;gap:9px;padding:9px 13px;border-radius:9px;cursor:pointer;font-size:13px;color:rgba(255,255,255,.5);transition:all .15s;margin:1px 6px;border-left:2px solid transparent}
+.sl:hover{background:rgba(255,255,255,.04);color:var(--wht)}
+.sl.on{background:rgba(14,165,233,.1);color:var(--wht);border-left-color:#0EA5E9}
+.sl-ic{width:16px;text-align:center;font-size:14px}
+.sb-ft{margin-top:auto;padding:12px 14px;border-top:1px solid var(--bdr);font-size:12px;color:var(--mut);cursor:pointer}
+.sb-ft:hover{color:#ef4444}
+.mn{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.tb{padding:14px 22px;border-bottom:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.tb-t{font-family:'Manrope',sans-serif;font-size:17px;font-weight:800}
+.tb-s{font-size:12px;color:var(--mut)}
+.ct{flex:1;overflow-y:auto;padding:22px}
+.pg{display:none}
+.sg{display:grid;grid-template-columns:repeat(4,1fr);gap:11px;margin-bottom:18px}
+.tc{display:grid;grid-template-columns:1fr 1fr;gap:13px}
+.fg{margin-bottom:13px}
+.fl{font-size:11px;font-weight:700;color:var(--mut);letter-spacing:.06em;text-transform:uppercase;display:block;margin-bottom:5px}
+.fi{width:100%;padding:10px 12px;background:rgba(255,255,255,.05);border:1px solid var(--bdr);border-radius:8px;color:var(--wht);font-family:'Manrope',sans-serif;font-size:13px;outline:none;transition:border-color .2s}
+.fi:focus{border-color:var(--sky)}
+.fi::placeholder{color:var(--mut)}
+.fi option{background:#0d1e2e}
+.btn{padding:9px 16px;background:linear-gradient(135deg,#0284C7,#0EA5E9);border:none;border-radius:8px;color:#fff;font-family:'Manrope',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;white-space:nowrap}
+.btn:hover{transform:translateY(-1px)}
+.bsm{padding:6px 11px;font-size:12px;border-radius:7px}
+.bgh{background:rgba(255,255,255,.05);border:1px solid var(--bdr);color:rgba(255,255,255,.6)}
+@media(max-width:960px){.sg{grid-template-columns:1fr 1fr}.tc{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="lay">
+<div class="sb" id="sb">
+  <div class="sb-hd"><div class="sb-logo"><img class="sb-logo-img" src="https://i.postimg.cc/g21XrwWS/Gemini-Generated-Image-4r9ct4r9ct4r9ct4.png" alt="Oasis"><div><div class="sb-nm">Oasis LMS</div><div class="sb-rl" id="sbnm">Owner</div></div></div></div>
+  <div id="sbl"></div>
+  <div class="sb-ft" onclick="signout()">⬅ Sign out</div>
+</div>
+<div class="mn">
+  <div class="tb"><div><div class="tb-t" id="pgt">Overview</div><div class="tb-s">Oasis Dry Cleaning & Laundry · Glenwood</div></div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <div id="bkst" style="font-size:11px;color:var(--mut);white-space:nowrap">Backup: —</div>
+      <button class="btn bsm bgh" id="bkbtn" onclick="backupNow()">🗄 Backup Now</button>
+      <button class="btn bsm bgh" onclick="exportAll()">⬇ Export All</button><button class="btn bsm" onclick="init()">↻ Refresh</button>
+    </div>
+  </div>
+  <div class="ct" id="ct"></div>
+</div>
+</div>
+<script>
+const SUPA='https://lyzuwgovltrkwexzqtdv.supabase.co';
+const KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx5enV3Z292bHRya3dleHpxdGR2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA0MDcyNDMsImV4cCI6MjA5NTk4MzI0M30.PQD_Y-YkI8Q3Az2Ykeq-jvINqee5IG8f9lpD-5fFz74';
+
+// AUTH
+const me = (()=>{const s=sessionStorage.getItem('oasis_staff');if(!s){location.href='index.html';return null;}return JSON.parse(s);})();
+if(me && me.role!=='Owner') location.href='index.html';
+if(me) document.getElementById('sbnm').textContent=me.name;
+function signout(){sessionStorage.clear();location.href='index.html';}
+
+// API
+async function api(table,opts={}){
+  const{method='GET',filter='',body,select='*',order='',limit=''}=opts;
+  let url=`${SUPA}/rest/v1/${table}?select=${select}`;
+  if(filter)url+='&'+filter;
+  if(order)url+='&order='+order;
+  if(limit)url+='&limit='+limit;
+  const h={'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json','Prefer':method==='POST'?'return=representation':'return=minimal'};
+  const r=await fetch(url,{method,headers:h,body:body?JSON.stringify(body):undefined});
+  if(!r.ok){console.error(await r.text());return null;}
+  const t=await r.text();return t?JSON.parse(t):(method==='GET'?[]:true);
+}
+const get=(t,f,x={})=>api(t,{filter:f,...x});
+const post=(t,b)=>api(t,{method:'POST',body:b});
+const patch=(t,f,b)=>api(t,{method:'PATCH',filter:f,body:b});
+
+// BACKUP (server-side, writes to disk — separate from Supabase)
+function relTime(d){
+  const s=Math.floor((Date.now()-new Date(d).getTime())/1000);
+  if(s<60)return 'just now';
+  if(s<3600)return Math.floor(s/60)+'m ago';
+  if(s<86400)return Math.floor(s/3600)+'h ago';
+  return Math.floor(s/86400)+'d ago';
+}
+async function loadBackupStatus(){
+  const el=document.getElementById('bkst');
+  try{
+    const r=await fetch('/api/backups');
+    const list=await r.json();
+    if(!list.length){el.textContent='Backup: none yet';return;}
+    el.textContent='Last backup: '+relTime(list[0].createdAt);
+    el.title=list[0].file;
+  }catch(e){el.textContent='Backup: status unknown';}
+}
+async function backupNow(){
+  const btn=document.getElementById('bkbtn');
+  const el=document.getElementById('bkst');
+  btn.disabled=true;btn.textContent='⏳ Backing up…';
+  try{
+    const r=await fetch('/api/backup',{method:'POST'});
+    const d=await r.json();
+    if(d.status==='ok'){
+      const total=Object.values(d.rowCounts).filter(v=>v!=='ERROR').reduce((a,b)=>a+b,0);
+      toast('Backup complete — '+total+' rows saved','ok');
+      if(d.errors&&d.errors.length)toast(d.errors.length+' table(s) failed — check server log','err');
+      await alog('Backup Created','Manual backup, '+total+' rows across '+Object.keys(d.rowCounts).length+' tables');
+    }else{
+      toast('Backup failed: '+d.error,'err');
+    }
+  }catch(e){
+    toast('Could not reach backup endpoint — is the server running?','err');
+  }finally{
+    btn.disabled=false;btn.textContent='🗄 Backup Now';
+    loadBackupStatus();rBkp();
+  }
+}
+
+// ── BACKUPS PAGE (full list, restore, schema download) ─────────
+let bkpFiles=[];
+async function rBkp(){
+  const el=document.getElementById('p-bkp');
+  if(!el)return;
+  try{
+    const r=await fetch('/api/backups');
+    bkpFiles=await r.json();
+  }catch(e){bkpFiles=[];}
+
+  const intro=`<div style="font-size:13px;color:rgba(255,255,255,.55);line-height:1.6;margin-bottom:4px">
+    A backup saves every table's data to a file on this computer's hard drive — runs automatically every day at 10:00 while the server is on, or any time via <strong>Backup Now</strong>.<br><br>
+    <strong>If tables were ever deleted/dropped:</strong> first run the schema script below in the Supabase SQL Editor to recreate the table structures, <em>then</em> restore a backup to refill the data with original IDs intact (so relationships stay correct).
+  </div>`;
+
+  const schemaAct=`<button class="btn bsm bgh" onclick="window.open('/api/backup-sql','_blank')">⬇ Download Schema SQL</button>`;
+  const schemaPanel=pnl('1. Rebuild table structure (only if tables were dropped)',
+    `<div style="font-size:13px;color:rgba(255,255,255,.5)">Downloads a .sql file with CREATE TABLE for all 13 tables, in the correct order. Open it, copy the contents, and run it in Supabase → SQL Editor.</div>`,
+    schemaAct);
+
+  const backupAct=`<button class="btn bsm" id="bkbtn2" onclick="backupNow()">🗄 Backup Now</button>`;
+  const rows=bkpFiles.map(f=>[
+    f.file,
+    fdt(f.createdAt)+' '+ftm(f.createdAt),
+    (f.size/1024).toFixed(1)+' KB',
+    `<button class="btn bsm" onclick="restoreFile('${f.file}')">♻ Restore</button>`
+  ]);
+  const listPanel=pnl('2. Restore data from a backup',
+    intro2()+tbl(['File','Created','Size',''],rows,'No backups yet — click Backup Now to create one.'),
+    backupAct);
+
+  el.innerHTML=intro+schemaPanel+listPanel;
+}
+function intro2(){return `<div style="font-size:11px;color:rgba(255,255,255,.35);margin-bottom:10px">Restoring re-inserts each row with its original ID. Existing rows with the same ID are left untouched (not duplicated).</div>`;}
+
+async function restoreFile(file){
+  if(!confirm('Restore data from "'+file+'"?\n\nThis writes rows back into your live tables (existing rows with the same ID are skipped, not duplicated). Make sure the table structures already exist.'))return;
+  toast('Restoring…','info');
+  try{
+    const r=await fetch('/api/restore',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({file})});
+    const d=await r.json();
+    if(d.status==='ok'){
+      const total=Object.values(d.inserted).reduce((a,b)=>a+b,0);
+      toast('Restore complete — '+total+' rows inserted','ok');
+      if(d.errors&&d.errors.length)toast(d.errors.length+' table(s) had errors — check server log','err');
+      await alog('Data Restored','From '+file+' — '+total+' rows');
+      init();
+    }else{
+      toast('Restore failed: '+d.error,'err');
+    }
+  }catch(e){
+    toast('Could not reach restore endpoint','err');
+  }
+}
+
+// FORMAT
+const rnd=n=>'R '+parseFloat(n||0).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,',');
+const fdt=s=>s?new Date(s).toLocaleDateString('en-ZA',{day:'2-digit',month:'short',year:'numeric'}):'—';
+const ftm=s=>s?new Date(s).toLocaleTimeString('en-ZA',{hour:'2-digit',minute:'2-digit'}):'—';
+
+function bdg(t,c){
+  const m={Ready:'#10b981',Processing:'#f59e0b',Received:'#38bdf8',Collected:'#a78bfa',Overdue:'#ef4444',Pending:'#f59e0b',Confirmed:'#10b981',Active:'#10b981',Running:'#10b981',Idle:'#64748b',Error:'#ef4444',Owner:'#38bdf8',Counter:'#f59e0b',Cleaning:'#a78bfa',Cash:'#10b981',Card:'#38bdf8',EFT:'#f59e0b'};
+  const col=c||m[t]||'#64748b';
+  return `<span style="padding:2px 9px;border-radius:20px;font-size:11px;font-weight:700;background:${col}22;color:${col};border:1px solid ${col}44">${t}</span>`;
+}
+
+function toast(msg,type='ok'){
+  let w=document.getElementById('tw');
+  if(!w){w=document.createElement('div');w.id='tw';w.style.cssText='position:fixed;bottom:20px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:7px';document.body.appendChild(w);}
+  const d=document.createElement('div');
+  const c={ok:'rgba(16,185,129,.15)',err:'rgba(239,68,68,.15)',info:'rgba(14,165,233,.15)'};
+  const b={ok:'rgba(16,185,129,.3)',err:'rgba(239,68,68,.3)',info:'rgba(14,165,233,.3)'};
+  d.style.cssText=`padding:11px 15px;background:${c[type]};border:1px solid ${b[type]};border-radius:9px;font-size:13px;font-weight:600;color:#f0f6fc;font-family:'Manrope',sans-serif;min-width:200px`;
+  d.textContent=({ok:'✓',err:'✗',info:'ℹ'})[type]+'  '+msg;
+  w.appendChild(d);setTimeout(()=>d.remove(),3200);
+}
+
+function openModal(title,html){
+  let ov=document.getElementById('mov');
+  if(!ov){ov=document.createElement('div');ov.id='mov';ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(6px);z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px';ov.onclick=e=>{if(e.target===ov)closeModal();};document.body.appendChild(ov);}
+  ov.innerHTML=`<div style="background:#0d1e2e;border:1px solid rgba(255,255,255,.1);border-radius:18px;padding:26px 22px;width:100%;max-width:540px;max-height:90vh;overflow-y:auto;font-family:'Manrope',sans-serif;color:#f0f6fc">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px"><span style="font-family:'Manrope',sans-serif;font-size:17px;font-weight:800">${title}</span><button onclick="closeModal()" style="background:none;border:none;color:rgba(255,255,255,.4);font-size:18px;cursor:pointer">✕</button></div>${html}</div>`;
+  ov.style.display='flex';
+}
+function closeModal(){const o=document.getElementById('mov');if(o)o.style.display='none';}
+
+function tbl(heads,rows,empty='No data'){
+  if(!rows.length)return`<div style="padding:28px;text-align:center;color:rgba(255,255,255,.2);font-size:13px">${empty}</div>`;
+  return`<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse">
+    <thead><tr>${heads.map(h=>`<th style="padding:9px 11px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:rgba(255,255,255,.35);text-align:left;border-bottom:1px solid rgba(255,255,255,.06);white-space:nowrap">${h}</th>`).join('')}</tr></thead>
+    <tbody>${rows.map(r=>`<tr style="border-bottom:1px solid rgba(255,255,255,.03)">${r.map(c=>`<td style="padding:9px 11px;font-size:13px;color:rgba(255,255,255,.72)">${c??'—'}</td>`).join('')}</tr>`).join('')}</tbody>
+  </table></div>`;
+}
+
+function sc(icon,val,lbl,sub,acc='#38bdf8'){
+  return`<div style="background:var(--panel);border:1px solid var(--bdr);border-radius:13px;padding:16px 18px">
+    <div style="font-size:18px;margin-bottom:7px">${icon}</div>
+    <div style="font-size:24px;font-weight:800;font-family:'Manrope',sans-serif;color:${acc}">${val}</div>
+    <div style="font-size:13px;font-weight:600;color:#f0f6fc;margin-top:2px">${lbl}</div>
+    <div style="font-size:11px;color:rgba(255,255,255,.28);margin-top:1px">${sub}</div>
+  </div>`;
+}
+
+function pnl(title,content,act=''){
+  return`<div style="background:var(--panel);border:1px solid var(--bdr);border-radius:13px;padding:18px;margin-bottom:13px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:13px">
+      <div style="font-family:'Manrope',sans-serif;font-size:15px;font-weight:800">${title}</div>
+      ${act?`<div>${act}</div>`:''}
+    </div>${content}</div>`;
+}
+
+// PAGES
+const PAGES=[
+  {id:'ov',  icon:'📊',lbl:'Overview',     sec:'Overview'},
+  {id:'ord', icon:'📋',lbl:'Orders',        sec:'Operations'},
+  {id:'cus', icon:'👥',lbl:'Customers',     sec:'Operations'},
+  {id:'bil', icon:'💳',lbl:'Billing',       sec:'Operations'},
+
+  {id:'inv', icon:'📦',lbl:'Inventory',     sec:'Operations'},
+  {id:'sta', icon:'🧑‍💼',lbl:'Staff',         sec:'Operations'},
+  {id:'loy', icon:'⭐',lbl:'Loyalty',       sec:'Operations'},
+  {id:'msg', icon:'💬',lbl:'Messages',      sec:'Operations'},
+  {id:'ann', icon:'📣',lbl:'Announcements', sec:'Operations'},
+  {id:'kb',  icon:'📚',lbl:'Knowledge Base',sec:'Operations'},
+  {id:'iot', icon:'🤖',lbl:'Machines',      sec:'IoT'},
+  {id:'ana', icon:'📈',lbl:'Analytics',     sec:'Reports'},
+  {id:'not', icon:'🔔',lbl:'Notifications', sec:'Reports'},
+  {id:'aud', icon:'🗂️',lbl:'Audit Log',      sec:'Reports'},
+  {id:'prc', icon:'💰',lbl:'Price List',    sec:'Reports'},
+  {id:'ai',  icon:'🤖',lbl:'AI Insights',   sec:'Reports'},
+  {id:'bkp', icon:'🗄️',lbl:'Backups',       sec:'System'},
+];
+
+let lastSec='';
+const sbl=document.getElementById('sbl');
+PAGES.forEach(p=>{
+  if(p.sec!==lastSec){lastSec=p.sec;sbl.innerHTML+=`<div class="sb-sc">${p.sec}</div>`;}
+  const unreadBadge=p.id==='msg'?`<span id="msg-badge" style="display:none;margin-left:auto;background:#ef4444;color:#fff;font-size:10px;font-weight:700;padding:1px 6px;border-radius:10px">0</span>`:'';
+  sbl.innerHTML+=`<div class="sl" id="sl-${p.id}" onclick="show('${p.id}')"><span class="sl-ic">${p.icon}</span><span>${p.lbl}</span>${unreadBadge}</div>`;
+});
+
+const ct=document.getElementById('ct');
+PAGES.forEach(p=>{const d=document.createElement('div');d.className='pg';d.id='p-'+p.id;ct.appendChild(d);});
+
+function show(id){
+  document.querySelectorAll('.pg').forEach(p=>p.style.display='none');
+  const el=document.getElementById('p-'+id);if(el)el.style.display='block';
+  document.querySelectorAll('.sl').forEach(l=>{
+    const on=l.id==='sl-'+id;
+    l.classList.toggle('on',on);
+  });
+  document.getElementById('pgt').textContent=PAGES.find(p=>p.id===id)?.lbl||'';
+}
+
+// DATA
+let D={orders:[],customers:[],payments:[],staff:[],inventory:[],sensors:[],sensorLogs:[],auditLogs:[],messages:[],prices:[],kb:[]};
+
+async function init(){
+  try{
+    const[ord,cus,pay,sta,inv,sen,sl,al,msg,prc,kb]=await Promise.all([
+      get('orders','',{select:'*,customers(name,phone)',order:'created_at.desc'}),
+      get('customers','',{order:'name.asc'}),
+      get('payments','',{select:'*',order:'paid_at.desc'}),
+      get('staff','',{order:'created_at.asc'}),
+      get('inventory','',{order:'name.asc'}),
+      get('iot_sensors','',{order:'sensor_code.asc'}),
+      get('sensor_logs','',{select:'*,iot_sensors(sensor_code)',order:'logged_at.desc',limit:'50'}),
+      get('audit_logs','',{select:'*,staff(name)',order:'logged_at.desc',limit:'100'}),
+      get('messages','',{select:'*,staff!messages_from_staff_id_fkey(name)',order:'sent_at.desc'}),
+      get('prices','active=eq.true',{order:'service.asc'}),
+      get('knowledge_base','',{select:'*,staff!knowledge_base_created_by_fkey(name)',order:'updated_at.desc'}),
+    ]);
+    D={orders:ord||[],customers:cus||[],payments:pay||[],staff:sta||[],inventory:inv||[],sensors:sen||[],sensorLogs:sl||[],auditLogs:al||[],messages:msg||[],prices:prc||[],kb:kb||[]};
+    render();
+  }catch(e){toast('Load error: '+e.message,'err');}
+}
+
+function render(){rOv();rOrd();rCus();rBil();rInv();rSta();rLoy();rMsg();rAnn();rKb();rIot();rAna();rNot();rAud();rPrc();renderAI();rBkp();updateMsgBadge();}
+function updateMsgBadge(){const b=document.getElementById('msg-badge');if(!b)return;const c=D.messages.filter(m=>m.to_staff_id===me.id&&!m.read).length;b.textContent=c;b.style.display=c?'inline':'none';}
+
+async function alog(action,detail){await post('audit_logs',{staff_id:me.id,action,detail});}
+
+// ── OVERVIEW
+function rOv(){
+  const el=document.getElementById('p-ov');
+  const rev=D.payments.reduce((s,p)=>s+(p.total_paid||0),0);
+  const ready=D.orders.filter(o=>o.status==='Ready').length;
+  const proc=D.orders.filter(o=>o.status==='Processing').length;
+  const over=D.orders.filter(o=>o.status==='Overdue').length;
+  const low=D.inventory.filter(i=>i.current_qty<=i.threshold).length;
+
+  const resetReqs=D.auditLogs.filter(a=>a.action==='Password Reset Requested');
+  const resetPanel = resetReqs.length ? tbl(['Time','Staff','Detail'], resetReqs.map(a=>[ftm(a.logged_at), a.staff?.name||'Staff', a.detail||'—'])) : '<div style="padding:24px;text-align:center;color:rgba(255,255,255,.35)">No password reset requests.</div>';
+  el.innerHTML=`
+  <div class="sg">
+    ${sc('📋',D.orders.length,'Total Orders','all time','#38bdf8')}
+    ${sc('✅',ready,'Ready','for collection','#10b981')}
+    ${sc('⚙️',proc,'Processing','being cleaned','#f59e0b')}
+    ${sc('💰',rnd(rev),'Revenue','all payments','#a78bfa')}
+  </div>
+  <div class="tc">
+    ${pnl('📊 Order Status',tbl(['Status','Count','%'],
+      ['Ready','Processing','Received','Collected','Overdue'].map(s=>{
+        const c=D.orders.filter(o=>o.status===s).length;
+        return[bdg(s),c,D.orders.length?Math.round(c/D.orders.length*100)+'%':'0%'];
+      })
+    ))}
+    ${pnl('⚠️ Alerts',(()=>{
+      let h='';
+      if(over)h+=`<div style="padding:10px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:8px;margin-bottom:8px;font-size:13px;cursor:pointer" onclick="show('ord')">🔴 ${over} overdue order${over>1?'s':''}</div>`;
+      if(low)h+=`<div style="padding:10px;background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);border-radius:8px;margin-bottom:8px;font-size:13px;cursor:pointer" onclick="show('inv')">🟡 ${low} low stock item${low>1?'s':''}</div>`;
+
+      return h||'<div style="padding:24px;text-align:center;color:rgba(255,255,255,.2);font-size:13px">✓ All clear</div>';
+    })())}
+    ${pnl('🔑 Password Reset Requests', resetPanel, resetReqs.length?`<button class="btn bsm" onclick="show('aud')">Audit Log →</button>`:'')}
+  </div>
+  ${pnl('📋 Recent Orders',tbl(['Order','Customer','Service','Status','Amount'],
+    D.orders.slice(0,8).map(o=>[
+      `<span style="font-weight:700;color:#38bdf8;font-family:monospace">${o.id.slice(0,8)}</span>`,
+      o.customers?.name||'—',o.service,bdg(o.status),rnd(o.amount)
+    ])
+  ),`<button class="btn bsm" onclick="show('ord')">All Orders →</button>`)}`;
+}
+
+// ── ORDERS
+function rOrd(){
+  document.getElementById('p-ord').innerHTML=`
+  <div style="display:flex;justify-content:flex-end;margin-bottom:13px"><button class="btn bsm bgh" onclick="csvExp('orders')">⬇ CSV</button></div>
+  ${pnl('📋 All Orders',tbl(['ID','Customer','Service','Items','Status','Amount','Date'],
+    D.orders.map(o=>[
+      `<span style="font-family:monospace;font-size:11px;color:#38bdf8">${o.id.slice(0,8)}</span>`,
+      o.customers?.name||'—',o.service,o.items,bdg(o.status),rnd(o.amount),fdt(o.created_at)
+    ])
+  ))}`;
+}
+
+// ── CUSTOMERS
+function rCus(){
+  document.getElementById('p-cus').innerHTML=`
+  <div style="display:flex;justify-content:flex-end;margin-bottom:13px"><button class="btn bsm bgh" onclick="csvExp('customers')">⬇ CSV</button></div>
+  ${pnl('👥 Customers',tbl(['Name','Phone','Email','POPIA','Loyalty Pts','Joined'],
+    D.customers.map(c=>[
+      `<span style="font-weight:700">${c.name}</span>`,c.phone,c.email||'—',
+      c.consent?bdg('Given','#10b981'):bdg('No','#ef4444'),
+      `<span style="font-weight:700;color:#a78bfa">${c.loyalty_pts}</span>`,fdt(c.joined_at)
+    ])
+  ))}`;
+}
+
+// ── BILLING
+function rBil(){
+  const rev=D.payments.reduce((s,p)=>s+(p.total_paid||0),0);
+  const meth={};D.payments.forEach(p=>{meth[p.method]=(meth[p.method]||0)+(p.total_paid||0);});
+  document.getElementById('p-bil').innerHTML=`
+  <div class="sg">
+    ${sc('💰',rnd(rev),'Total Revenue','','#a78bfa')}
+    ${sc('🧾',D.payments.length,'Transactions','','#38bdf8')}
+    ${sc('💵',rnd(meth.Cash||0),'Cash','','#10b981')}
+    ${sc('💳',rnd((meth.Card||0)+(meth.EFT||0)+(meth.SnapScan||0)),'Digital','','#f59e0b')}
+  </div>
+  <div class="tc">
+    ${pnl('💳 Payments',tbl(['Order','Method','Amount','Disc','Total','Time'],
+      D.payments.map(p=>[
+        p.order_id?.slice(0,8)||'—',bdg(p.method,'#38bdf8'),rnd(p.amount),
+        p.discount_pct?p.discount_pct+'%':'—',`<strong style="color:#10b981">${rnd(p.total_paid)}</strong>`,ftm(p.paid_at)
+      ])
+    ))}
+    ${pnl('📊 By Method',tbl(['Method','Total'],
+      Object.entries(meth).map(([m,v])=>[bdg(m,'#38bdf8'),`<strong style="color:#a78bfa">${rnd(v)}</strong>`])
+    ))}
+  </div>`;
+}
+
+
+// ── INVENTORY
+function rInv(){
+  document.getElementById('p-inv').innerHTML=`
+  <div style="display:flex;justify-content:flex-end;gap:8px;margin-bottom:13px">
+    <button class="btn bsm" onclick="openAddInv()">+ Add</button>
+    <button class="btn bsm bgh" onclick="csvExp('inventory')">⬇ CSV</button>
+  </div>
+  ${pnl('📦 Stock',tbl(['Item','Unit','Current','Threshold','Status','Action'],
+    D.inventory.map(i=>{
+      const low=i.current_qty<=i.threshold;
+      return[`<span style="font-weight:700">${i.name}</span>`,i.unit,
+        `<span style="font-weight:700;color:${low?'#ef4444':'#10b981'}">${i.current_qty}</span>`,
+        i.threshold,low?bdg('Low','#ef4444'):bdg('OK','#10b981'),
+        `<button class="btn bsm bgh" onclick="openRS('${i.id}','${i.name.replace(/'/g,'')}')">Restock</button>`];
+    })
+  ))}`;
+}
+function openAddInv(){
+  openModal('Add Stock Item',`
+    <div class="fg"><label class="fl">Name</label><input class="fi" id="in" placeholder="Washing Powder"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px">
+      <div class="fg"><label class="fl">Unit</label><input class="fi" id="iu" placeholder="kg"></div>
+      <div class="fg"><label class="fl">Current</label><input class="fi" type="number" id="ic" value="0"></div>
+      <div class="fg"><label class="fl">Threshold</label><input class="fi" type="number" id="it" value="5"></div>
+    </div>
+    <button class="btn" style="width:100%" onclick="saveInv()">Add</button>`);
+}
+async function saveInv(){
+  const n=document.getElementById('in')?.value.trim(),u=document.getElementById('iu')?.value.trim(),c=parseFloat(document.getElementById('ic')?.value)||0,t=parseFloat(document.getElementById('it')?.value)||0;
+  if(!n){toast('Name required','err');return;}
+  await post('inventory',{name:n,unit:u,current_qty:c,max_qty:c*2||10,threshold:t});
+  await alog('Stock Added',n);toast(n+' added','ok');closeModal();init();
+}
+function openRS(id,name){
+  openModal('Restock '+name,`
+    <div class="fg"><label class="fl">New Quantity</label><input class="fi" type="number" id="rsq" placeholder="Enter new level"></div>
+    <button class="btn" style="width:100%" onclick="saveRS('${id}','${name}')">Update</button>`);
+}
+async function saveRS(id,name){
+  const q=parseFloat(document.getElementById('rsq')?.value);
+  if(isNaN(q)){toast('Enter quantity','err');return;}
+  await patch('inventory','id=eq.'+id,{current_qty:q,updated_at:new Date().toISOString()});
+  await alog('Restocked',name+' → '+q);toast('Updated','ok');closeModal();init();
+}
+
+// ── STAFF
+function rSta(){
+  document.getElementById('p-sta').innerHTML=`
+  <div class="sg">
+    ${sc('🧑‍💼',D.staff.length,'Total','','#38bdf8')}
+    ${sc('✅',D.staff.filter(s=>s.active).length,'Active','','#10b981')}
+    ${sc('🧾',D.staff.filter(s=>s.role==='Counter').length,'Counter','','#f59e0b')}
+    ${sc('👕',D.staff.filter(s=>s.role==='Cleaning').length,'Cleaning','','#a78bfa')}
+  </div>
+  <div style="display:flex;justify-content:flex-end;margin-bottom:13px"><button class="btn bsm" onclick="openAddSta()">+ Add Staff</button></div>
+  ${pnl('🧑‍💼 Staff',tbl(['Name','Role','Email','Status','Action'],
+    D.staff.map(s=>[
+      `<span style="font-weight:700">${s.name}</span>`,bdg(s.role),s.email,
+      s.active?bdg('Active','#10b981'):bdg('Inactive','#ef4444'),
+      `<div style="display:flex;gap:5px">
+        <button class="btn bsm bgh" onclick="toggleSta('${s.id}',${s.active})">${s.active?'Deactivate':'Reactivate'}</button>
+        <button class="btn bsm" style="background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.25);color:#f59e0b" onclick="openResetPin('${s.id}','${s.name.replace(/'/g,'')}')">🔑 Reset PIN</button>
+      </div>`
+    ])
+  ))}`;
+}
+function openResetPin(id,name){
+  openModal('🔑 Reset PIN — '+name,`
+    <div style="background:rgba(245,158,11,.07);border:1px solid rgba(245,158,11,.2);border-radius:9px;padding:12px 14px;margin-bottom:18px;font-size:13px;color:rgba(255,255,255,.6);line-height:1.6">
+      This will update <strong style="color:#f0f6fc">${name}</strong>'s PIN to the value you enter below. Inform them of their new PIN directly.
+    </div>
+    <div class="fg"><label class="fl">New PIN</label><input class="fi" type="password" id="np1" placeholder="Enter new PIN (min 6 chars)"></div>
+    <div class="fg"><label class="fl">Confirm PIN</label><input class="fi" type="password" id="np2" placeholder="Repeat PIN" onkeydown="if(event.key==='Enter')saveResetPin('${id}','${name}')"></div>
+    <button class="btn" style="width:100%;background:linear-gradient(135deg,#d97706,#f59e0b)" onclick="saveResetPin('${id}','${name}')">Reset PIN →</button>`);
+}
+
+async function saveResetPin(id,name){
+  const p1=(document.getElementById('np1')?.value||'').trim();
+  const p2=(document.getElementById('np2')?.value||'').trim();
+  if(!p1||p1.length<6){toast('PIN must be at least 6 characters','err');return;}
+  if(p1!==p2){toast('PINs do not match','err');return;}
+  await patch('staff','id=eq.'+id,{pin_hash:p1});
+  await alog('PIN Reset','PIN updated for '+name+' by owner');
+  // clear any pending reset requests from audit log display (mark as resolved)
+  toast(name+"'s PIN has been reset",'ok');
+  closeModal();init();
+}
+
+function openAddSta(){
+  openModal('Add Staff',`
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px">
+      <div class="fg"><label class="fl">Name</label><input class="fi" id="sn" placeholder="Ayanda S."></div>
+      <div class="fg"><label class="fl">Email</label><input class="fi" id="se" placeholder="ayanda@oasis.co.za"></div>
+    </div>
+    <div class="fg"><label class="fl">Role</label><select class="fi" id="sr"><option>Counter</option><option>Cleaning</option><option>Owner</option></select></div>
+    <div class="fg"><label class="fl">PIN</label><input class="fi" id="sp" placeholder="Enter PIN"></div>
+    <button class="btn" style="width:100%" onclick="saveSta()">Add</button>`);
+}
+async function saveSta(){
+  const n=document.getElementById('sn')?.value.trim(),e=document.getElementById('se')?.value.trim(),r=document.getElementById('sr')?.value,p=document.getElementById('sp')?.value.trim();
+  if(!n||!e||!p){toast('All fields required','err');return;}
+  await post('staff',{name:n,email:e,role:r,pin_hash:p,active:true});
+  await alog('Staff Added',n+' — '+r);toast(n+' added','ok');closeModal();init();
+}
+async function toggleSta(id,active){
+  await patch('staff','id=eq.'+id,{active:!active});
+  await alog(active?'Staff Deactivated':'Staff Reactivated',id.slice(0,8));
+  toast(active?'Deactivated':'Reactivated','ok');init();
+}
+
+// ── LOYALTY
+function rLoy(){
+  document.getElementById('p-loy').innerHTML=`
+  <div class="sg">
+    ${sc('🥇',D.customers.filter(c=>c.loyalty_pts>=500).length,'Gold','500+ pts · 15%','#fcd34d')}
+    ${sc('🥈',D.customers.filter(c=>c.loyalty_pts>=300&&c.loyalty_pts<500).length,'Silver','300–499 · 10%','#9ca3af')}
+    ${sc('🥉',D.customers.filter(c=>c.loyalty_pts>0&&c.loyalty_pts<300).length,'Bronze','1–299 · 5%','#f59e0b')}
+    ${sc('👤',D.customers.filter(c=>!c.loyalty_pts).length,'No Points','new','#64748b')}
+  </div>
+
+  <div style="background:rgba(16,185,129,.06);border:1px solid rgba(16,185,129,.2);border-radius:10px;padding:12px 16px;margin-bottom:14px;font-size:13px;color:rgba(255,255,255,.6);line-height:1.7">
+    ✅ <strong style="color:#f0f6fc">Automatic:</strong> Points are awarded instantly when a payment is collected via the Counter dashboard.<br>
+    📐 <strong style="color:#f0f6fc">Rate:</strong> 1 point per R10 spent · 🥉 Bronze 5% · 🥈 Silver 10% · 🥇 Gold 15%<br>
+    ✏️ <strong style="color:#f0f6fc">Manual override:</strong> Use the "Award Points" button below to adjust any customer's balance.
+  </div>
+
+  ${pnl('⭐ Loyalty Leaderboard',tbl(['Customer','Points','Tier','Discount','Progress to Next','Action'],
+    D.customers.sort((a,b)=>b.loyalty_pts-a.loyalty_pts).map(c=>{
+      const tier=c.loyalty_pts>=500?'Gold':c.loyalty_pts>=300?'Silver':c.loyalty_pts>0?'Bronze':'None';
+      const tc={Gold:'#fcd34d',Silver:'#9ca3af',Bronze:'#f59e0b',None:'#64748b'}[tier];
+      const disc={Gold:'15%',Silver:'10%',Bronze:'5%',None:'—'}[tier];
+
+      // Progress bar to next tier
+      let nextTier='', progress=0, nextPts=0;
+      if(c.loyalty_pts<300){nextTier='Silver';nextPts=300;progress=Math.round(c.loyalty_pts/300*100);}
+      else if(c.loyalty_pts<500){nextTier='Gold';nextPts=500;progress=Math.round((c.loyalty_pts-300)/200*100);}
+      else{nextTier='Max';progress=100;}
+
+      const progressBar=nextTier==='Max'
+        ?'<span style="font-size:11px;color:#fcd34d;font-weight:700">🥇 Max tier</span>'
+        :`<div style="display:flex;align-items:center;gap:6px">
+            <div style="width:80px;height:4px;background:rgba(255,255,255,.08);border-radius:2px">
+              <div style="width:${progress}%;height:100%;background:${tc};border-radius:2px"></div>
+            </div>
+            <span style="font-size:10px;color:rgba(255,255,255,.35)">${c.loyalty_pts}/${nextPts}</span>
+          </div>`;
+
+      return[
+        `<span style="font-weight:700">${c.name}</span>`,
+        `<span style="color:#a78bfa;font-weight:800">${c.loyalty_pts}</span>`,
+        `<span style="padding:2px 9px;border-radius:20px;font-size:11px;font-weight:700;background:${tc}22;color:${tc};border:1px solid ${tc}44">${tier}</span>`,
+        `<span style="font-weight:700;color:#10b981">${disc}</span>`,
+        progressBar,
+        `<button class="btn bsm bgh" onclick="openAwardPts('${c.id}','${c.name.replace(/'/g,'')}',${c.loyalty_pts})">✏️ Adjust</button>`
+      ];
+    })
+  ))}`;
+}
+
+function openAwardPts(id, name, current){
+  openModal('✏️ Adjust Points — '+name,`
+    <div style="text-align:center;padding:10px 0 20px">
+      <div style="font-size:13px;color:rgba(255,255,255,.4);margin-bottom:4px">Current Balance</div>
+      <div style="font-size:36px;font-weight:900;color:#a78bfa">${current} pts</div>
+      <div style="font-size:12px;color:rgba(255,255,255,.3);margin-top:4px">${
+        current>=500?'🥇 Gold — 15% discount':
+        current>=300?'🥈 Silver — 10% discount':
+        current>0?'🥉 Bronze — 5% discount':'No tier yet'
+      }</div>
+    </div>
+    <div class="fg"><label class="fl">Adjustment (+ to add, - to subtract)</label>
+      <input class="fi" type="number" id="pts-adj" placeholder="e.g. 54 to award R540 payment" onkeydown="if(event.key==='Enter')saveAwardPts('${id}','${name}',${current})">
+    </div>
+    <div class="fg"><label class="fl">Reason</label>
+      <input class="fi" id="pts-reason" placeholder="e.g. Manual correction, R540 payment">
+    </div>
+    <div id="pts-preview" style="padding:10px 13px;background:rgba(167,139,250,.08);border:1px solid rgba(167,139,250,.2);border-radius:8px;margin-bottom:14px;font-size:13px;display:none"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <button class="btn bgh" onclick="previewPts(${current})">Preview →</button>
+      <button class="btn" onclick="saveAwardPts('${id}','${name}',${current})">Save Points</button>
+    </div>`);
+}
+
+function previewPts(current){
+  const adj=parseInt(document.getElementById('pts-adj')?.value)||0;
+  const newTotal=Math.max(0,current+adj);
+  const tier=newTotal>=500?'🥇 Gold (15%)':newTotal>=300?'🥈 Silver (10%)':newTotal>0?'🥉 Bronze (5%)':'No tier';
+  const el=document.getElementById('pts-preview');
+  if(!el)return;
+  el.style.display='block';
+  el.innerHTML=`<strong style="color:#f0f6fc">${current}</strong> ${adj>=0?'+':''}${adj} = <strong style="color:#a78bfa;font-size:16px">${newTotal} pts</strong> → ${tier}`;
+}
+
+async function saveAwardPts(id, name, current){
+  const adj=parseInt(document.getElementById('pts-adj')?.value)||0;
+  const reason=(document.getElementById('pts-reason')?.value||'Manual adjustment').trim();
+  if(!adj){toast('Enter an adjustment amount','err');return;}
+  const newTotal=Math.max(0,current+adj);
+  await patch('customers','id=eq.'+id,{loyalty_pts:newTotal});
+  await alog('Loyalty Points Adjusted',name+': '+current+' → '+newTotal+' ('+reason+')');
+  toast(name+': '+current+' → '+newTotal+' pts','ok');
+  closeModal();init();
+}
+
+// ── MESSAGES
+function rMsg(){
+  document.getElementById('p-msg').innerHTML=`
+  ${D.messages.map(m=>`<div style="display:flex;gap:11px;padding:13px;background:var(--panel);border:1px solid var(--bdr);border-radius:11px;margin-bottom:7px">
+    <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#0284c7,#38bdf8);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:11px;flex-shrink:0">${(m.staff?.name||'?').slice(0,2).toUpperCase()}</div>
+    <div><div style="display:flex;gap:8px;align-items:center;margin-bottom:3px"><span style="font-size:13px;font-weight:700">${m.staff?.name||'Staff'}</span><span style="font-size:11px;color:var(--mut)"> → ${m.to_staff_id===null?'All Staff':(D.staff.find(s=>s.id===m.to_staff_id)?.name||'Staff')}</span><span style="font-size:11px;color:var(--mut)">${fdt(m.sent_at)} ${ftm(m.sent_at)}</span>${!m.read?'<span style="font-size:10px;background:#ef4444;color:#fff;padding:1px 5px;border-radius:8px">NEW</span>':''}</div>
+    <div style="font-size:13px;color:rgba(255,255,255,.6)">${m.body}</div></div></div>`).join('')}
+  <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--bdr)">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+      <div class="fg"><label class="fl">To</label><select class="fi" id="mto"><option value="">All Staff</option>${D.staff.filter(s=>s.id!==me.id).map(s=>`<option value="${s.id}">${s.name}</option>`).join('')}</select></div>
+    </div>
+    <div class="fg"><label class="fl">Message</label><textarea class="fi" id="mbody" rows="2" style="resize:none" placeholder="Type message…"></textarea></div>
+    <button class="btn bsm" onclick="sendMsg()">Send →</button>
+  </div>`;
+}
+async function sendMsg(){
+  const body=document.getElementById('mbody')?.value.trim(),to=document.getElementById('mto')?.value||'';
+  if(!body){toast('Enter message','err');return;}
+  if(!to){
+    const targets=D.staff.filter(s=>s.active && s.id!==me.id);
+    if(!targets.length){toast('No staff available','err');return;}
+    await Promise.all(targets.map(s=>post('messages',{from_staff_id:me.id,to_staff_id:s.id,body,read:false})));
+  } else {
+    await post('messages',{from_staff_id:me.id,to_staff_id:to,body,read:false});
+  }
+  await alog('Message Sent',body.slice(0,50));
+  toast('Sent','ok');document.getElementById('mbody').value='';init();
+}
+
+function rAnn(){
+  const el=document.getElementById('p-ann');
+  const board=D.messages.filter(m=>m.to_staff_id===null||m.to_staff_id===undefined).map(m=>`<div style="padding:13px;background:var(--panel);border:1px solid var(--bdr);border-radius:11px;margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><strong>${m.staff?.name||'Staff'}</strong><span style="font-size:11px;color:var(--mut)">${fdt(m.sent_at)} ${ftm(m.sent_at)}</span></div>
+      <div style="font-size:13px;color:rgba(255,255,255,.78);white-space:pre-wrap">${m.body.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
+    </div>`).join('');
+  el.innerHTML=`<div class="tc">
+    ${pnl('📣 Announcement Board',board||'<div style="padding:24px;text-align:center;color:rgba(255,255,255,.4);font-size:13px">No announcements yet.</div>')}
+    <div style="padding:15px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:12px">
+      <div style="font-size:13px;font-weight:700;margin-bottom:8px">Post announcement to all staff</div>
+      <textarea id="ann-body" class="fi" rows="4" style="width:100%;resize:none" placeholder="Write announcement..."></textarea>
+      <button class="btn bsm" style="margin-top:10px" onclick="sendAnn()">Post Announcement</button>
+    </div>
+  </div>`;
+}
+
+async function sendAnn(){
+  const body=document.getElementById('ann-body')?.value.trim();
+  if(!body){toast('Enter announcement text','err');return;}
+  await post('messages',{from_staff_id:me.id,to_staff_id:null,body,read:false});
+  toast('Announcement posted','ok');
+  document.getElementById('ann-body').value='';
+  init();
+}
+
+function rKb(){
+  const el=document.getElementById('p-kb');
+  el.innerHTML=`<div style="display:flex;flex-direction:column;gap:14px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <div style="font-size:15px;font-weight:800">Knowledge Base</div>
+      <button class="btn bsm" onclick="openKbEditor()">+ Add Article</button>
+    </div>
+    ${D.kb.length?D.kb.map(k=>`<div style="background:var(--panel);border:1px solid var(--bdr);border-radius:12px;padding:14px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:8px"><div><div style="font-size:14px;font-weight:800">${k.title}</div><div style="font-size:11px;color:var(--mut);margin-top:3px">${k.staff?.name?`<span style="color:rgba(255,255,255,.55)">${k.staff.name}</span> · `:''}${k.updated_at?fdt(k.updated_at):''}</div></div><button class="btn bsm" onclick="openKbEditor('${k.id}')">Edit</button></div>
+      <div style="font-size:13px;color:rgba(255,255,255,.7);white-space:pre-wrap">${k.body.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
+    </div>`).join(''):'<div style="padding:24px;text-align:center;color:rgba(255,255,255,.4);font-size:13px">No knowledge base articles yet.</div>'}
+  </div>`;
+}
+
+function openKbEditor(id=''){
+  const item=D.kb.find(x=>x.id===id)||{title:'',body:''};
+  openModal(`${id?'Edit':'Add'} Knowledge Base Article`,
+    `<div class="fg"><label class="fl">Title</label><input class="fi" id="kb-title" value="${(item.title||'').replace(/"/g,'&quot;')}"></div>
+    <div class="fg"><label class="fl">Content</label><textarea class="fi" id="kb-body" rows="8" style="width:100%;resize:none">${(item.body||'').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</textarea></div>
+    <button class="btn" style="width:100%;margin-top:12px" onclick="saveKb('${id}')">Save Article</button>`
+  );
+}
+
+async function saveKb(id=''){
+  const title=(document.getElementById('kb-title')?.value||'').trim();
+  const body=(document.getElementById('kb-body')?.value||'').trim();
+  if(!title||!body){toast('Enter both title and content','err');return;}
+  if(id){await patch('knowledge_base',`id=eq.${id}`,{title,body});}
+  else{await post('knowledge_base',{title,body,created_by:me.id});}
+  toast('Article saved','ok');
+  closeModal();
+  init();
+}
+
+// ── IOT
+function rIot(){
+  document.getElementById('p-iot').innerHTML=`
+  <div class="sg">
+    ${sc('⚙️',D.sensors.filter(s=>s.status==='Running').length,'Running','','#10b981')}
+    ${sc('💤',D.sensors.filter(s=>s.status==='Idle'||s.status==='Ready').length,'Idle/Ready','','#64748b')}
+    ${sc('🚨',D.sensors.filter(s=>s.status==='Error'||s.status==='Fault').length,'Faults','','#ef4444')}
+    ${sc('🌡️',D.sensors.filter(s=>s.type==='Env').length,'Env Sensors','','#38bdf8')}
+  </div>
+  ${pnl('🤖 Machines',tbl(['Code','Name','Type','Status','Temp','Load','Mins','Updated'],
+    D.sensors.map(s=>[
+      `<span style="font-weight:700;color:#38bdf8;font-family:monospace">${s.sensor_code}</span>`,
+      s.name,s.type,bdg(s.status),s.temp||'—',s.load||'—',
+      s.remaining_mins?`<span style="color:#f59e0b;font-weight:700">${s.remaining_mins}</span>`:'—',
+      ftm(s.updated_at)
+    ])
+  ))}
+  ${pnl('📜 Sensor Log',tbl(['Time','Sensor','Event','Detail'],
+    D.sensorLogs.map(e=>{
+      const col=e.event?.includes('Error')||e.event?.includes('Alert')?'#ef4444':e.event?.includes('Complete')?'#10b981':'#38bdf8';
+      return[ftm(e.logged_at),`<span style="color:${col};font-weight:700">${e.iot_sensors?.sensor_code||'—'}</span>`,`<span style="color:${col}">${e.event}</span>`,e.detail||'—'];
+    })
+  ))}`;
+}
+
+// ── ANALYTICS — Power BI-style dashboard
+function rAna(){
+  const now = new Date();
+  const todayStr = now.toLocaleDateString('en-ZA',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  const timeStr  = now.toLocaleTimeString('en-ZA',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+
+  // ── READ ACTIVE FILTERS (persist across re-renders)
+  const selSvc  = document.getElementById('ana-svc')?.value  || '';
+  const selStat = document.getElementById('ana-stat')?.value || '';
+
+  // FILTERED order set — everything derives from this
+  const orders = D.orders.filter(o=>{
+    if(selSvc  && o.service !== selSvc)  return false;
+    if(selStat && o.status  !== selStat) return false;
+    return true;
+  });
+
+  // KPI values
+  const totalOrd  = orders.length;
+  const collected = orders.filter(o=>o.status==='Collected').length;
+  const ready     = orders.filter(o=>o.status==='Ready').length;
+  const overdue   = orders.filter(o=>o.status==='Overdue').length;
+  const rev       = D.payments.reduce((s,p)=>s+(p.total_paid||0),0);
+  const closureRate = totalOrd ? Math.round(collected/totalOrd*100) : 0;
+  const avgOrder  = collected ? Math.round(rev/collected) : 0;
+  const lowStock  = D.inventory.filter(i=>i.current_qty<=i.threshold).length;
+
+  // service breakdown
+  const svcMap={};orders.forEach(o=>{svcMap[o.service]=(svcMap[o.service]||0)+1;});
+  const svcEntries=Object.entries(svcMap).sort((a,b)=>b[1]-a[1]);
+  const svcTotal=orders.length||1;
+
+  // status breakdown
+  const statuses=['Received','Processing','Ready','Collected','Overdue'];
+  const statColors={'Received':'#38bdf8','Processing':'#f59e0b','Ready':'#10b981','Collected':'#a78bfa','Overdue':'#ef4444'};
+
+  // payment method breakdown
+  const methMap={};D.payments.forEach(p=>{methMap[p.method]=(methMap[p.method]||0)+1;});
+
+  // loyalty tier breakdown
+  const gold=D.customers.filter(c=>c.loyalty_pts>=500).length;
+  const silver=D.customers.filter(c=>c.loyalty_pts>=300&&c.loyalty_pts<500).length;
+  const bronze=D.customers.filter(c=>c.loyalty_pts>0&&c.loyalty_pts<300).length;
+  const nopts=D.customers.filter(c=>!c.loyalty_pts).length;
+
+  // orders by day (last 7 days)
+  const days7=[];for(let i=6;i>=0;i--){const d=new Date(now);d.setDate(d.getDate()-i);days7.push({label:d.toLocaleDateString('en-ZA',{weekday:'short'}),date:d.toISOString().split('T')[0]});}
+  const ordByDay=days7.map(d=>({label:d.label,count:orders.filter(o=>o.created_at&&o.created_at.startsWith(d.date)).length}));
+  const maxDayOrd=Math.max(...ordByDay.map(d=>d.count),1);
+
+  // staff performance
+  const staffPerf=D.staff.map(s=>{
+    const myOrd=orders.filter(o=>o.staff_id===s.id).length;
+    const myPay=D.payments.filter(p=>p.staff_id===s.id).reduce((sum,p)=>sum+(p.total_paid||0),0);
+    return{name:s.name,role:s.role,orders:myOrd,revenue:myPay};
+  }).sort((a,b)=>b.orders-a.orders);
+
+  // SVG sparkline helper
+  function sparkline(data,color,w=80,h=28){
+    if(!data.length||Math.max(...data)===0)return`<svg width="${w}" height="${h}"><line x1="0" y1="${h/2}" x2="${w}" y2="${h/2}" stroke="${color}" stroke-width="1.5" opacity=".3"/></svg>`;
+    const max=Math.max(...data,1);
+    const pts=data.map((v,i)=>`${Math.round(i/(data.length-1||1)*w)},${Math.round(h-v/max*(h-4)-2)}`).join(' ');
+    return`<svg width="${w}" height="${h}" style="overflow:visible"><polyline points="${pts}" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity=".85"/></svg>`;
+  }
+
+  // fake sparkline data based on real totals (last 6 periods)
+  const spkOrd =[Math.max(0,totalOrd-5),Math.max(0,totalOrd-3),Math.max(0,totalOrd-4),Math.max(0,totalOrd-2),Math.max(0,totalOrd-1),totalOrd];
+  const spkRev =[Math.max(0,rev*.7),Math.max(0,rev*.75),Math.max(0,rev*.8),Math.max(0,rev*.85),Math.max(0,rev*.92),rev];
+  const spkClos=[55,60,62,65,closureRate-2,closureRate];
+  const spkAvg =[Math.max(0,avgOrder-30),Math.max(0,avgOrder-20),Math.max(0,avgOrder-10),avgOrder+5,Math.max(0,avgOrder-5),avgOrder];
+
+  // donut SVG helper
+  function donut(segments,r=38,cx=45,cy=45){
+    let total=segments.reduce((s,g)=>s+(g.v||0),0)||1;
+    let angle=-90;
+    const paths=segments.map(g=>{
+      const pct=g.v/total;const deg=pct*360;
+      const r1=angle*Math.PI/180,r2=(angle+deg)*Math.PI/180;
+      const x1=cx+r*Math.cos(r1),y1=cy+r*Math.sin(r1);
+      const x2=cx+r*Math.cos(r2),y2=cy+r*Math.sin(r2);
+      const large=deg>180?1:0;
+      const d=`M ${cx} ${cy} L ${x1} ${y1} A ${r} ${r} 0 ${large} 1 ${x2} ${y2} Z`;
+      angle+=deg;
+      return`<path d="${d}" fill="${g.c}" opacity=".9"/>`;
+    }).join('');
+    return`<svg width="90" height="90" viewBox="0 0 90 90">${paths}<circle cx="${cx}" cy="${cy}" r="${r*.58}" fill="#0a1628"/></svg>`;
+  }
+
+  // bar chart SVG helper
+  function barChart(items,maxVal,barColor='#38bdf8',w=180,h=100){
+    const bw=Math.floor((w-items.length*4)/items.length);
+    const bars=items.map((item,i)=>{
+      const bh=maxVal?Math.round(item.v/maxVal*(h-18)):0;
+      const x=i*(bw+4);const y=h-bh-16;
+      return`<g>
+        <rect x="${x}" y="${y}" width="${bw}" height="${bh}" rx="2" fill="${item.c||barColor}" opacity=".85"/>
+        <text x="${x+bw/2}" y="${h-4}" text-anchor="middle" fill="rgba(255,255,255,.35)" font-size="9" font-family="Manrope">${item.l}</text>
+      </g>`;
+    }).join('');
+    return`<svg width="${w}" height="${h}" style="overflow:visible">${bars}</svg>`;
+  }
+
+  document.getElementById('p-ana').innerHTML=`
+  <!-- HEADER -->
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;flex-wrap:wrap;gap:10px">
+    <div>
+      <div style="font-family:'Manrope',sans-serif;font-size:20px;font-weight:900;color:#f0f6fc;letter-spacing:-.4px">Oasis — Analytics Dashboard</div>
+      <div style="font-size:12px;color:rgba(255,255,255,.35);margin-top:3px">Last data reload: ${todayStr} · <span style="color:#38bdf8" id="live-time">${timeStr}</span></div>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <button class="btn bsm bgh" onclick="init();rAna()">↻ Refresh</button>
+      <button class="btn bsm bgh" onclick="exportAll()">⬇ Export All</button>
+    </div>
+  </div>
+
+  <!-- FILTER BAR -->
+  <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:12px 16px;margin-bottom:18px;display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+    <span style="font-size:11px;font-weight:700;color:rgba(255,255,255,.35);letter-spacing:.07em;text-transform:uppercase">🔽 Filter</span>
+    <div style="display:flex;align-items:center;gap:7px">
+      <label style="font-size:11px;color:rgba(255,255,255,.35);font-weight:600">Service</label>
+      <select class="fi" style="padding:5px 10px;font-size:12px;width:auto" id="ana-svc" onchange="rAna()">
+        <option value="">All Services</option>
+        ${Object.keys(svcMap).map(s=>`<option${s===selSvc?' selected':''}>${s}</option>`).join('')}
+      </select>
+    </div>
+    <div style="display:flex;align-items:center;gap:7px">
+      <label style="font-size:11px;color:rgba(255,255,255,.35);font-weight:600">Status</label>
+      <select class="fi" style="padding:5px 10px;font-size:12px;width:auto" id="ana-stat" onchange="rAna()">
+        <option value="">All Statuses</option>
+        ${statuses.map(s=>`<option${s===selStat?' selected':''}>${s}</option>`).join('')}
+      </select>
+    </div>
+    ${selSvc||selStat?`<span style="font-size:11px;background:rgba(14,165,233,.12);border:1px solid rgba(14,165,233,.25);padding:3px 10px;border-radius:20px;color:#38bdf8;font-weight:700">Showing ${orders.length} of ${D.orders.length} orders</span>`:''}
+    <button class="btn bsm bgh" style="font-size:11px" onclick="document.getElementById('ana-svc').value='';document.getElementById('ana-stat').value='';rAna()">✕ Reset</button>
+  </div>
+
+  <!-- KPI CARDS ROW -->
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:11px;margin-bottom:18px">
+    ${kpiCard('Orders Created',totalOrd,'',spkOrd,'#38bdf8','📋')}
+    ${kpiCard('Revenue (ZAR)',rnd(rev),'all payments',spkRev,'#a78bfa','💰')}
+    ${kpiCard('Closure Rate',closureRate+'%','collected vs total',spkClos,'#10b981','✅')}
+    ${kpiCard('Avg Order Value',rnd(avgOrder),'per collected order',spkAvg,'#f59e0b','📈')}
+  </div>
+
+  <!-- ROW 2: 4 small stats -->
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:11px;margin-bottom:18px">
+    ${miniStat('👥',D.customers.length,'Customers','total registered')}
+    ${miniStat('✅',ready,'Ready','awaiting collection')}
+    ${miniStat('🚨',overdue,'Overdue','need follow-up','#ef4444')}
+    ${miniStat('📦',lowStock,'Low Stock','items below threshold','#f59e0b')}
+  </div>
+
+  <!-- ROW 3: Charts -->
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:11px;margin-bottom:18px">
+
+    <!-- Orders by Service (donut) -->
+    <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:13px;padding:16px">
+      <div style="font-size:12px;font-weight:800;color:#f0f6fc;margin-bottom:12px">Orders by Service</div>
+      <div style="display:flex;align-items:center;gap:10px">
+        ${donut(svcEntries.map((([s,v],i)=>({v,c:['#38bdf8','#a78bfa','#f59e0b','#10b981','#ef4444','#64748b'][i%6]}))))}
+        <div style="flex:1">
+          ${svcEntries.slice(0,4).map(([s,v],i)=>`
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:5px">
+            <div style="width:8px;height:8px;border-radius:2px;flex-shrink:0;background:${['#38bdf8','#a78bfa','#f59e0b','#10b981'][i]}"></div>
+            <span style="font-size:10px;color:rgba(255,255,255,.5);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${s}</span>
+            <span style="font-size:10px;font-weight:800;color:#f0f6fc">${Math.round(v/svcTotal*100)}%</span>
+          </div>`).join('')}
+        </div>
+      </div>
+    </div>
+
+    <!-- Orders by Status (donut) -->
+    <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:13px;padding:16px">
+      <div style="font-size:12px;font-weight:800;color:#f0f6fc;margin-bottom:12px">Orders by Status</div>
+      <div style="display:flex;align-items:center;gap:10px">
+        ${donut(statuses.map(s=>({v:orders.filter(o=>o.status===s).length,c:statColors[s]})))}
+        <div style="flex:1">
+          ${statuses.map(s=>{const c=orders.filter(o=>o.status===s).length;return`
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:5px">
+            <div style="width:8px;height:8px;border-radius:2px;flex-shrink:0;background:${statColors[s]}"></div>
+            <span style="font-size:10px;color:rgba(255,255,255,.5);flex:1">${s}</span>
+            <span style="font-size:10px;font-weight:800;color:#f0f6fc">${c}</span>
+          </div>`;}).join('')}
+        </div>
+      </div>
+    </div>
+
+    <!-- Payment Method (donut) -->
+    <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:13px;padding:16px">
+      <div style="font-size:12px;font-weight:800;color:#f0f6fc;margin-bottom:12px">Payment Method</div>
+      <div style="display:flex;align-items:center;gap:10px">
+        ${donut(Object.entries(methMap).map(([m,v],i)=>({v,c:['#10b981','#38bdf8','#f59e0b','#a78bfa'][i%4]})))}
+        <div style="flex:1">
+          ${Object.entries(methMap).length?Object.entries(methMap).map(([m,v],i)=>`
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:5px">
+            <div style="width:8px;height:8px;border-radius:2px;flex-shrink:0;background:${['#10b981','#38bdf8','#f59e0b','#a78bfa'][i%4]}"></div>
+            <span style="font-size:10px;color:rgba(255,255,255,.5);flex:1">${m}</span>
+            <span style="font-size:10px;font-weight:800;color:#f0f6fc">${v}</span>
+          </div>`).join(''):'<div style="font-size:11px;color:rgba(255,255,255,.25);padding:12px 0">No payments yet</div>'}
+        </div>
+      </div>
+    </div>
+
+    <!-- Loyalty Tiers (donut) -->
+    <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:13px;padding:16px">
+      <div style="font-size:12px;font-weight:800;color:#f0f6fc;margin-bottom:12px">Loyalty Tiers</div>
+      <div style="display:flex;align-items:center;gap:10px">
+        ${donut([{v:gold,c:'#fcd34d'},{v:silver,c:'#9ca3af'},{v:bronze,c:'#f59e0b'},{v:nopts,c:'#334155'}])}
+        <div style="flex:1">
+          ${[['🥇','Gold',gold,'#fcd34d'],['🥈','Silver',silver,'#9ca3af'],['🥉','Bronze',bronze,'#f59e0b'],['—','None',nopts,'#334155']].map(([ic,name,v,c])=>`
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:5px">
+            <div style="width:8px;height:8px;border-radius:2px;flex-shrink:0;background:${c}"></div>
+            <span style="font-size:10px;color:rgba(255,255,255,.5);flex:1">${name}</span>
+            <span style="font-size:10px;font-weight:800;color:#f0f6fc">${v}</span>
+          </div>`).join('')}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ROW 4: Bar charts + line chart -->
+  <div style="display:grid;grid-template-columns:1fr 2fr 1fr;gap:11px;margin-bottom:18px">
+
+    <!-- Service bar chart -->
+    <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:13px;padding:16px">
+      <div style="font-size:12px;font-weight:800;color:#f0f6fc;margin-bottom:14px">Orders by Service</div>
+      ${svcEntries.map(([s,v],i)=>`
+      <div style="margin-bottom:10px">
+        <div style="display:flex;justify-content:space-between;margin-bottom:3px">
+          <span style="font-size:11px;color:rgba(255,255,255,.5)">${s}</span>
+          <span style="font-size:11px;font-weight:800;color:#f0f6fc">${v}</span>
+        </div>
+        <div style="height:5px;background:rgba(255,255,255,.06);border-radius:3px">
+          <div style="height:100%;width:${Math.round(v/svcTotal*100)}%;background:${['#38bdf8','#a78bfa','#f59e0b','#10b981','#ef4444'][i%5]};border-radius:3px;transition:width .5s"></div>
+        </div>
+      </div>`).join('')}
+    </div>
+
+    <!-- Orders over time (line chart SVG) -->
+    <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:13px;padding:16px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+        <div style="font-size:12px;font-weight:800;color:#f0f6fc">Orders — Last 7 Days</div>
+        <div style="display:flex;gap:12px;font-size:11px;color:rgba(255,255,255,.4)">
+          <span><span style="display:inline-block;width:10px;height:2px;background:#38bdf8;margin-right:4px;vertical-align:middle"></span>Orders</span>
+        </div>
+      </div>
+      <svg width="100%" height="110" viewBox="0 0 400 110" preserveAspectRatio="none" style="overflow:visible">
+        <!-- grid lines -->
+        ${[0,1,2,3].map(i=>`<line x1="0" y1="${i*25+5}" x2="400" y2="${i*25+5}" stroke="rgba(255,255,255,.05)" stroke-width="1"/>`).join('')}
+        <!-- area fill -->
+        <defs>
+          <linearGradient id="agrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#38bdf8" stop-opacity=".25"/>
+            <stop offset="100%" stop-color="#38bdf8" stop-opacity="0"/>
+          </linearGradient>
+        </defs>
+        <polygon points="${ordByDay.map((d,i)=>`${Math.round(i/(ordByDay.length-1||1)*380)+10},${Math.round(100-d.count/maxDayOrd*85)}`).join(' ')} ${380+10},105 10,105" fill="url(#agrad)"/>
+        <!-- line -->
+        <polyline points="${ordByDay.map((d,i)=>`${Math.round(i/(ordByDay.length-1||1)*380)+10},${Math.round(100-d.count/maxDayOrd*85)}`).join(' ')}" fill="none" stroke="#38bdf8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <!-- dots -->
+        ${ordByDay.map((d,i)=>`<circle cx="${Math.round(i/(ordByDay.length-1||1)*380)+10}" cy="${Math.round(100-d.count/maxDayOrd*85)}" r="4" fill="#0a1628" stroke="#38bdf8" stroke-width="2.5"/>`).join('')}
+        <!-- labels -->
+        ${ordByDay.map((d,i)=>`<text x="${Math.round(i/(ordByDay.length-1||1)*380)+10}" y="112" text-anchor="middle" fill="rgba(255,255,255,.3)" font-size="10" font-family="Manrope">${d.label}</text>`).join('')}
+      </svg>
+    </div>
+
+    <!-- Top Staff Performance -->
+    <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:13px;padding:16px">
+      <div style="font-size:12px;font-weight:800;color:#f0f6fc;margin-bottom:14px">Top Staff</div>
+      ${staffPerf.map((s,i)=>`
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+        <div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#0284c7,#38bdf8);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;color:#fff;flex-shrink:0">${s.name.slice(0,2).toUpperCase()}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:12px;font-weight:700;color:#f0f6fc;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${s.name}</div>
+          <div style="height:4px;background:rgba(255,255,255,.06);border-radius:2px;margin-top:4px">
+            <div style="height:100%;width:${staffPerf[0].orders?Math.round(s.orders/staffPerf[0].orders*100):0}%;background:#38bdf8;border-radius:2px"></div>
+          </div>
+        </div>
+        <span style="font-size:12px;font-weight:800;color:#38bdf8;flex-shrink:0">${s.orders}</span>
+      </div>`).join('')}
+    </div>
+  </div>
+
+  <!-- ROW 5: Inventory health + cloud backup -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:11px">
+
+    <!-- Inventory health -->
+    <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:13px;padding:16px">
+      <div style="font-size:12px;font-weight:800;color:#f0f6fc;margin-bottom:14px">📦 Inventory Health</div>
+      ${D.inventory.slice(0,6).map(item=>{
+        const pct=item.max_qty?Math.round(item.current_qty/item.max_qty*100):0;
+        const low=item.current_qty<=item.threshold;
+        const col=low?'#ef4444':pct>60?'#10b981':'#f59e0b';
+        return`<div style="margin-bottom:9px">
+          <div style="display:flex;justify-content:space-between;margin-bottom:3px">
+            <span style="font-size:11px;color:${low?'#ef4444':'rgba(255,255,255,.55)'};font-weight:${low?700:400}">${item.name}${low?' ⚠':''}</span>
+            <span style="font-size:11px;font-weight:800;color:${col}">${item.current_qty} ${item.unit}</span>
+          </div>
+          <div style="height:5px;background:rgba(255,255,255,.06);border-radius:3px">
+            <div style="height:100%;width:${pct}%;background:${col};border-radius:3px;transition:width .5s"></div>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
+
+    <!-- Cloud backup + export -->
+    <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:13px;padding:16px">
+      <div style="font-size:12px;font-weight:800;color:#f0f6fc;margin-bottom:14px">☁️ Cloud Backup & POPIA</div>
+      <div style="font-size:13px;color:rgba(255,255,255,.45);line-height:1.8;margin-bottom:16px">
+        Export weekly to <strong style="color:#f0f6fc">Google Drive</strong> or <strong style="color:#f0f6fc">OneDrive</strong>.<br>
+        Store in a <strong style="color:#f59e0b">password-protected</strong> folder labelled<br>
+        <span style="font-size:11px;background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.2);padding:2px 8px;border-radius:4px;color:#f59e0b">CONFIDENTIAL — POPIA Controlled</span>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px">
+        <button class="btn bsm bgh" onclick="csvExp('orders')" style="font-size:11px">⬇ Orders CSV</button>
+        <button class="btn bsm bgh" onclick="csvExp('customers')" style="font-size:11px">⬇ Customers CSV</button>
+        <button class="btn bsm bgh" onclick="csvExp('payments')" style="font-size:11px">⬇ Payments CSV</button>
+        <button class="btn bsm bgh" onclick="csvExp('audit_logs')" style="font-size:11px">⬇ Audit CSV</button>
+      </div>
+      <button class="btn" style="width:100%;margin-top:10px;font-size:13px" onclick="exportAll()">⬇ Export All Now</button>
+    </div>
+  </div>`;
+
+  // live clock
+  clearInterval(window._anaClock);
+  window._anaClock=setInterval(()=>{
+    const el=document.getElementById('live-time');
+    if(el)el.textContent=new Date().toLocaleTimeString('en-ZA',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+    else clearInterval(window._anaClock);
+  },1000);
+}
+
+// KPI card with sparkline
+function kpiCard(label,val,sub,spkData,color,icon){
+  const change=spkData&&spkData.length>=2?Math.round((spkData[spkData.length-1]-spkData[0])/(spkData[0]||1)*100):0;
+  const up=change>=0;
+  function sparkline(data,c,w=80,h=28){
+    if(!data||!data.length||Math.max(...data)===0)return`<svg width="${w}" height="${h}"><line x1="0" y1="${h/2}" x2="${w}" y2="${h/2}" stroke="${c}" stroke-width="1.5" opacity=".3"/></svg>`;
+    const max=Math.max(...data,1);
+    const pts=data.map((v,i)=>`${Math.round(i/(data.length-1||1)*w)},${Math.round(h-v/max*(h-4)-2)}`).join(' ');
+    return`<svg width="${w}" height="${h}" style="overflow:visible"><polyline points="${pts}" fill="none" stroke="${c}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity=".85"/></svg>`;
+  }
+  return`<div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:13px;padding:16px 18px;position:relative;overflow:hidden">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start">
+      <div>
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:rgba(255,255,255,.35);margin-bottom:6px">${label}</div>
+        <div style="font-size:26px;font-weight:900;color:${color};font-family:'Manrope',sans-serif;letter-spacing:-.5px;line-height:1">${val}</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.3);margin-top:4px">${sub}</div>
+      </div>
+      <div style="font-size:24px;opacity:.15;position:absolute;top:12px;right:14px">${icon}</div>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-top:12px">
+      <div style="font-size:11px;color:${up?'#10b981':'#ef4444'};font-weight:700">${up?'▲':'▼'} ${Math.abs(change)}% vs last</div>
+      ${sparkline(spkData,color)}
+    </div>
+  </div>`;
+}
+
+function miniStat(icon,val,label,sub,color='#38bdf8'){
+  return`<div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:13px;padding:14px 16px;display:flex;align-items:center;gap:14px">
+    <div style="width:38px;height:38px;border-radius:10px;background:${color}18;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">${icon}</div>
+    <div><div style="font-size:20px;font-weight:900;color:${color};font-family:'Manrope',sans-serif;letter-spacing:-.5px">${val}</div>
+    <div style="font-size:12px;font-weight:700;color:#f0f6fc">${label}</div>
+    <div style="font-size:10px;color:rgba(255,255,255,.3)">${sub}</div></div>
+  </div>`;
+}
+
+
+// ── NOTIFICATIONS
+// dismissed notification keys persist across renders
+const _dismissedNots = new Set(JSON.parse(sessionStorage.getItem('not_dismissed')||'[]'));
+function _saveNots(){sessionStorage.setItem('not_dismissed',JSON.stringify([..._dismissedNots]));}
+function dismissNot(key){_dismissedNots.add(key);_saveNots();rNot();}
+function dismissAllNots(){_allNotKeys.forEach(k=>_dismissedNots.add(k));_saveNots();rNot();}
+let _allNotKeys=[];
+
+function rNot(){
+  const raw=[];
+  D.orders.filter(o=>o.status==='Overdue').forEach(o=>raw.push({t:'err',i:'🔴',ti:'Overdue — '+(o.customers?.name||''),b:o.service,l:'ord',k:'ord-overdue-'+o.id}));
+  D.inventory.filter(i=>i.current_qty<=i.threshold).forEach(i=>raw.push({t:'warn',i:'🟡',ti:'Low Stock — '+i.name,b:i.current_qty+' '+i.unit+' left',l:'inv',k:'inv-low-'+i.id}));
+  D.orders.filter(o=>o.status==='Ready').forEach(o=>raw.push({t:'ok',i:'🟢',ti:'Ready — '+(o.customers?.name||''),b:o.service,l:'ord',k:'ord-ready-'+o.id}));
+
+  D.auditLogs.filter(a=>a.action==='Password Reset Requested').forEach(a=>raw.push({t:'warn',i:'🔑',ti:'PIN Reset Request — '+(a.staff?.name||'Staff'),b:a.detail,l:'aud',k:'aud-reset-'+a.id}));
+  D.messages.filter(m=>m.to_staff_id===null||m.to_staff_id===undefined).forEach(m=>raw.push({t:'info',i:'📣',ti:'Announcement — '+(m.staff?.name||'Staff'),b:m.body,l:'ann',k:'ann-'+m.id}));
+  _allNotKeys=raw.map(n=>n.k);
+  const notifs=raw.filter(n=>!_dismissedNots.has(n.k));
+  const col={err:'rgba(239,68,68,.08)',warn:'rgba(245,158,11,.08)',ok:'rgba(16,185,129,.08)',info:'rgba(56,189,248,.08)'};
+  const bdr={err:'rgba(239,68,68,.2)',warn:'rgba(245,158,11,.2)',ok:'rgba(16,185,129,.2)',info:'rgba(56,189,248,.2)'};
+  document.getElementById('p-not').innerHTML=`
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:13px">
+      <div style="font-weight:700">${notifs.length} notification${notifs.length!==1?'s':''} <span style="font-size:11px;color:var(--mut);font-weight:400">(${_dismissedNots.size} dismissed)</span></div>
+      ${notifs.length?`<button class="btn bsm bgh" onclick="dismissAllNots()">Dismiss All</button>`:''}
+    </div>`+
+  (notifs.length?notifs.map(n=>`<div style="display:flex;gap:13px;padding:13px 15px;background:${col[n.t]};border:1px solid ${bdr[n.t]};border-radius:10px;margin-bottom:7px">
+    <div style="font-size:18px">${n.i}</div>
+    <div style="flex:1"><div style="font-size:13px;font-weight:700;margin-bottom:3px">${n.ti}</div>
+    <div style="font-size:12px;color:rgba(255,255,255,.45);margin-bottom:7px">${n.b}</div>
+    <div style="display:flex;gap:7px">
+      <button class="btn bsm bgh" onclick="show('${n.l}');dismissNot('${n.k}')">View →</button>
+      <button class="btn bsm bgh" style="color:rgba(255,255,255,.3)" onclick="dismissNot('${n.k}')">✕ Dismiss</button>
+    </div></div></div>`).join('')
+  :'<div style="padding:40px;text-align:center;color:rgba(255,255,255,.2)">✓ No notifications</div>');
+}
+
+// ── AUDIT
+function rAud(){
+  document.getElementById('p-aud').innerHTML=`
+  <div style="display:flex;justify-content:flex-end;margin-bottom:13px"><button class="btn bsm bgh" onclick="csvExp('audit_logs')">⬇ CSV</button></div>
+  ${pnl('🗂️ Audit Log',tbl(['Time','Staff','Action','Detail'],
+    D.auditLogs.map(a=>[ftm(a.logged_at),`<span style="font-weight:700">${a.staff?.name||'System'}</span>`,a.action,a.detail||'—'])
+  ))}`;
+}
+
+// ── EXPORTS
+function csvExp(table){
+  const map={
+    orders:{data:D.orders,f:['id','service','items','status','amount','discount','created_at']},
+    customers:{data:D.customers,f:['id','name','phone','email','consent','loyalty_pts','joined_at']},
+    inventory:{data:D.inventory,f:['name','unit','current_qty','max_qty','threshold']},
+    audit_logs:{data:D.auditLogs,f:['logged_at','action','detail']},
+    payments:{data:D.payments,f:['order_id','method','amount','discount_pct','total_paid','paid_at']},
+  };
+  const m=map[table];if(!m)return;
+  const csv=[m.f.join(','),...m.data.map(r=>m.f.map(f=>`"${r[f]??''}"`).join(','))].join('\n');
+  const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+  a.download='oasis-'+table+'-'+new Date().toISOString().split('T')[0]+'.csv';a.click();
+}
+function exportAll(){['orders','customers','inventory','audit_logs','payments'].forEach(t=>csvExp(t));}
+
+// ── PRICE MANAGEMENT ────────────────────────────────────────────
+function rPrc(){
+  const box=document.getElementById('p-prc');if(!box)return;
+  box.innerHTML=`
+  <div style="display:flex;justify-content:flex-end;gap:8px;margin-bottom:13px">
+    <button class="btn bsm" onclick="openAddSvc()">+ Add Service</button>
+  </div>
+  ${pnl('💰 Service Price List',`
+    <p style="font-size:12px;color:var(--mut);margin-bottom:13px">
+      Changes take effect immediately — counter staff see updated prices on next page load.
+    </p>
+    ${tbl(['Service','Price per item','Status','Actions'],
+      D.prices.map(p=>[
+        `<span style="font-weight:700">${p.service}</span>`,
+        `<span style="font-weight:900;color:#f59e0b;font-size:15px">R ${parseFloat(p.price).toFixed(2)}</span>`,
+        p.active?bdg('Active','#10b981'):bdg('Inactive','#64748b'),
+        `<div style="display:flex;gap:6px">
+          <button class="btn bsm" onclick="openEditPrice('${p.id}','${p.service.replace(/'/g,'')}',${p.price})">Edit</button>
+          <button class="btn bsm bgh" onclick="toggleSvc('${p.id}','${p.service.replace(/'/g,'')}',${p.active})">${p.active?'Disable':'Enable'}</button>
+        </div>`
+      ])
+    )}
+  `)}`;
+}
+
+function openAddSvc(){
+  openModal('Add Service',`
+    <div class="fg"><label class="fl">Service Name</label><input class="fi" id="sv-name" placeholder="e.g. Curtain Wash"></div>
+    <div class="fg"><label class="fl">Price per item (R)</label><input class="fi" type="number" id="sv-price" placeholder="e.g. 95" min="0" step="0.01"></div>
+    <button class="btn" style="width:100%" onclick="saveNewSvc()">Add Service →</button>`);
+}
+async function saveNewSvc(){
+  const name=(document.getElementById('sv-name')?.value||'').trim();
+  const price=parseFloat(document.getElementById('sv-price')?.value)||0;
+  if(!name){toast('Service name required','err');return;}
+  if(price<=0){toast('Price must be greater than 0','err');return;}
+  await post('prices',{service:name,price,active:true});
+  await alog('Price Added',name+' — R'+price.toFixed(2));
+  toast(name+' added at R'+price.toFixed(2),'ok');closeModal();init();
+}
+
+function openEditPrice(id,service,currentPrice){
+  openModal('Edit Price — '+service,`
+    <div class="fg"><label class="fl">New Price per item (R)</label>
+      <input class="fi" type="number" id="ep-val" value="${currentPrice}" min="0" step="0.01"></div>
+    <button class="btn" style="width:100%" onclick="saveEditPrice('${id}','${service}')">Save Price →</button>`);
+}
+async function saveEditPrice(id,service){
+  const price=parseFloat(document.getElementById('ep-val')?.value);
+  if(isNaN(price)||price<=0){toast('Enter a valid price','err');return;}
+  await patch('prices','id=eq.'+id,{price,updated_at:new Date().toISOString()});
+  await alog('Price Updated',service+' → R'+price.toFixed(2));
+  toast(service+' updated to R'+price.toFixed(2),'ok');closeModal();init();
+}
+
+async function toggleSvc(id,service,active){
+  await patch('prices','id=eq.'+id,{active:!active,updated_at:new Date().toISOString()});
+  await alog(active?'Service Disabled':'Service Enabled',service);
+  toast(service+' '+(active?'disabled':'enabled'),'ok');init();
+}
+
+
+
+// ── AI INSIGHTS ─────────────────────────────────────────────────────────────
+let OR_KEY = '';
+const OR_MODEL = 'meta-llama/llama-3.3-8b-instruct:free';
+// Load API key securely from server
+(async()=>{try{const r=await fetch('/api/ai-config');const d=await r.json();OR_KEY=d.key||'';}catch(e){console.warn('Could not load AI config');}})();
+
+function renderAI(){
+  const box = document.getElementById('p-ai');
+  if(!box) return;
+  box.innerHTML = `
+    <div style="max-width:720px;margin:0 auto">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
+        <div style="width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#6366f1,#8b5cf6);display:flex;align-items:center;justify-content:center;font-size:22px">🤖</div>
+        <div>
+          <div style="font-weight:700;font-size:18px">AI Business Insights</div>
+          <div style="font-size:13px;color:rgba(255,255,255,.5)">Powered by Llama 3.3 · Analyses your live data</div>
+        </div>
+        <button class="btn" style="margin-left:auto;background:linear-gradient(135deg,#6366f1,#8b5cf6);border:none" onclick="runAI()">✨ Generate Insights</button>
+      </div>
+      <div id="ai-cats" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px">
+        ${[
+          ['📋','Orders','Analyse order trends, peak days, and status issues'],
+          ['👥','Customers','Identify loyal, at-risk, and inactive customers'],
+          ['💳','Revenue','Review payment patterns and revenue performance'],
+          ['📦','Inventory','Flag low stock and restocking recommendations'],
+          ['⭐','Loyalty','Suggest loyalty and retention strategies']
+        ].map(([ic,lbl,tip],i)=>`
+          <label title="${tip}" style="cursor:pointer;display:flex;align-items:center;gap:6px;padding:7px 13px;border-radius:8px;border:1px solid rgba(255,255,255,.12);font-size:13px;background:var(--panel);transition:.2s">
+            <input type="checkbox" id="ai-c${i}" checked style="accent-color:#6366f1"> ${ic} ${lbl}
+          </label>`).join('')}
+      </div>
+      <div id="ai-out" style="min-height:200px;background:var(--panel);border:1px solid rgba(99,102,241,.3);border-radius:14px;padding:20px;font-size:14px;line-height:1.8;color:rgba(255,255,255,.85)">
+        <div style="color:rgba(255,255,255,.35);text-align:center;padding:40px 0">
+          Click <strong style="color:#6366f1">✨ Generate Insights</strong> to analyse your business data
+        </div>
+      </div>
+      <div id="ai-time" style="font-size:11px;color:rgba(255,255,255,.3);text-align:right;margin-top:6px"></div>
+    </div>`;
+}
+
+async function runAI(){
+  const box = document.getElementById('ai-out');
+  const timeEl = document.getElementById('ai-time');
+  if(!box) return;
+
+  const cats = ['Orders','Customers','Revenue','Inventory','Loyalty'];
+  const selected = cats.filter((_,i)=>document.getElementById('ai-c'+i)?.checked);
+  if(!selected.length){ toast('Select at least one category','err'); return; }
+
+  box.innerHTML = `<div style="text-align:center;padding:40px 0;color:rgba(255,255,255,.5)">
+    <div style="font-size:28px">⏳</div>
+    <div style="margin-top:10px">Analysing your data…</div>
+  </div>`;
+
+  const totalRev = D.payments.reduce((s,p)=>s+(p.total_paid||0),0);
+  const dayCount = {};
+  D.orders.forEach(o=>{ const d=new Date(o.created_at).toLocaleDateString('en',{weekday:'long'}); dayCount[d]=(dayCount[d]||0)+1; });
+  const sorted = Object.entries(dayCount).sort((a,b)=>b[1]-a[1]);
+  const peakDay = sorted[0];
+  const slowDay = sorted[sorted.length-1];
+  const statusCount = {};
+  D.orders.forEach(o=>{ statusCount[o.status]=(statusCount[o.status]||0)+1; });
+  const lowStock = D.inventory.filter(i=>i.qty<=i.reorder_level).map(i=>i.name);
+  const activeC = D.customers.filter(c=>c.status==='Active').length;
+  const loyalC = D.customers.filter(c=>(c.loyalty_pts||0)>=50).length;
+  const inactiveC = D.customers.filter(c=>c.status!=='Active').length;
+
+  const dataCtx = "Business: Oasis Dry Cleaning & Laundry, Glenwood, Durban, South Africa.\nSelected areas: "+selected.join(', ')+"\n\nORDERS ("+D.orders.length+" total):\n- Statuses: "+JSON.stringify(statusCount)+"\n- Peak day: "+(peakDay?peakDay[0]+' ('+peakDay[1]+' orders)':'unknown')+"\n- Slowest day: "+(slowDay?slowDay[0]+' ('+slowDay[1]+' orders)':'unknown')+"\n\nCUSTOMERS ("+D.customers.length+" total):\n- Active: "+activeC+", Inactive: "+inactiveC+"\n- Loyal (50+ pts): "+loyalC+"\n\nREVENUE:\n- Total collected: R"+totalRev.toFixed(2)+"\n- Payments recorded: "+D.payments.length+"\n\nINVENTORY:\n- Low stock items: "+(lowStock.length?lowStock.join(', '):'none')+"\n- Items tracked: "+D.inventory.length;
+
+  const prompt = "You are a smart business analyst for a dry cleaning shop in South Africa.\nAnalyse this data and give 5-7 specific, actionable insights.\nFormat each as: [EMOJI] **Bold Title**: Explanation and recommendation.\nBe specific with numbers. Keep it practical for a small business owner.\n\n"+dataCtx;
+
+  try {
+    const t0 = Date.now();
+    const res = await fetch('/api/ai',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({prompt})
+    });
+    const data = await res.json();
+    if(!res.ok || data.error){
+      box.innerHTML='<div style="color:#f87171">⚠️ '+( data.error||'Unknown error')+'</div>';return;
+    }
+    const text = data.text || 'No response received.';
+    const secs = ((Date.now()-t0)/1000).toFixed(1);
+    const html = text
+      .replace(/\*\*(.*?)\*\*/g,'<strong style="color:#a5b4fc">$1</strong>')
+      .split('\n').filter(l=>l.trim()).map(l=>`<div style="margin-bottom:10px">${l}</div>`).join('');
+    box.innerHTML = html;
+    if(timeEl) timeEl.textContent = 'Generated in '+secs+'s via '+data.model+' · '+new Date().toLocaleTimeString();
+  } catch(e){
+    box.innerHTML = '<div style="color:#f87171">Failed to get insights: '+e.message+'</div>';
+  }
+}
+
+init();show('ov');loadBackupStatus();
+</script>
+</body></html>

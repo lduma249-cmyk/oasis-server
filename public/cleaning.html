@@ -1,0 +1,602 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Oasis — Cleaning</title>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/@zxing/library@0.21.3/umd/index.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#07111b;--bdr:rgba(255,255,255,.07);--acc:#A78BFA;--wht:#F0F6FC;--mut:#64748B}
+html,body{height:100%;background:var(--bg);color:var(--wht);font-family:'Manrope',sans-serif;overflow:hidden}
+.lay{display:flex;height:100vh}
+.sb{width:210px;flex-shrink:0;background:rgba(255,255,255,.02);border-right:1px solid var(--bdr);display:flex;flex-direction:column;overflow-y:auto}
+.sb-hd{padding:18px 14px 14px;border-bottom:1px solid var(--bdr)}
+.sb-ic{width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,#7C3AED,#A78BFA);display:flex;align-items:center;justify-content:center;font-size:15px}
+.sb-logo-img{width:34px;height:34px;border-radius:12px;object-fit:cover;box-shadow:0 4px 18px rgba(0,0,0,.25)}
+.sb-nm{font-family:'Manrope',sans-serif;font-size:13px;font-weight:800}
+.sb-rl{font-size:10px;color:var(--mut)}
+.sb-sc{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.2);padding:12px 14px 3px}
+.sl{display:flex;align-items:center;gap:9px;padding:9px 13px;border-radius:9px;cursor:pointer;font-size:13px;color:rgba(255,255,255,.5);transition:all .15s;margin:1px 6px;border-left:2px solid transparent}
+.sl:hover{background:rgba(255,255,255,.04);color:var(--wht)}
+.sl.on{background:rgba(167,139,250,.1);color:var(--wht);border-left-color:#A78BFA}
+.sb-ft{margin-top:auto;padding:12px 14px;border-top:1px solid var(--bdr);font-size:12px;color:var(--mut);cursor:pointer}
+.sb-ft:hover{color:#ef4444}
+.mn{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.tb{padding:14px 22px;border-bottom:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.tb-t{font-family:'Manrope',sans-serif;font-size:17px;font-weight:800}
+.tb-s{font-size:12px;color:var(--mut)}
+.ct{flex:1;overflow-y:auto;padding:22px}
+.pg{display:none}
+.sg{display:grid;grid-template-columns:repeat(4,1fr);gap:11px;margin-bottom:18px}
+.fg{margin-bottom:13px}
+.fl{font-size:11px;font-weight:700;color:var(--mut);letter-spacing:.06em;text-transform:uppercase;display:block;margin-bottom:5px}
+.fi{width:100%;padding:10px 12px;background:rgba(255,255,255,.05);border:1px solid var(--bdr);border-radius:8px;color:var(--wht);font-family:'Manrope',sans-serif;font-size:13px;outline:none;transition:border-color .2s}
+.fi:focus{border-color:var(--acc)}
+.fi::placeholder{color:var(--mut)}
+.fi option{background:#0d1e2e}
+.btn{padding:9px 16px;background:linear-gradient(135deg,#7C3AED,#A78BFA);border:none;border-radius:8px;color:#fff;font-family:'Manrope',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;white-space:nowrap}
+.btn:hover{transform:translateY(-1px)}
+.bsm{padding:6px 11px;font-size:12px;border-radius:7px}
+.bgh{background:rgba(255,255,255,.05);border:1px solid var(--bdr);color:rgba(255,255,255,.6)}
+.bgr{background:linear-gradient(135deg,#059669,#10b981)}
+.cam{background:#000;border-radius:11px;overflow:hidden;width:100%;aspect-ratio:4/3;margin-bottom:9px}
+.cam video,.cam canvas{width:100%;height:100%;object-fit:cover;display:block}
+.cam canvas{display:none}
+@media(max-width:960px){.sg{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<div class="lay">
+<div class="sb">
+  <div class="sb-hd"><div style="display:flex;align-items:center;gap:10px"><img class="sb-logo-img" src="https://i.postimg.cc/g21XrwWS/Gemini-Generated-Image-4r9ct4r9ct4r9ct4.png" alt="Oasis"><div><div class="sb-nm">Cleaning</div><div class="sb-rl" id="sbnm">—</div></div></div></div>
+  <div id="sbl"></div>
+  <div class="sb-ft" onclick="signout()">⬅ Sign out</div>
+</div>
+<div class="mn">
+  <div class="tb">
+    <div><div class="tb-t" id="pgt">Workstation</div><div class="tb-s">Cleaning Staff · Oasis Glenwood</div></div>
+    <button class="btn bsm bgh" onclick="init()">↻ Refresh</button>
+  </div>
+  <div class="ct" id="ct"></div>
+</div>
+</div>
+<script>
+const SUPA='https://lyzuwgovltrkwexzqtdv.supabase.co';
+const KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx5enV3Z292bHRya3dleHpxdGR2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA0MDcyNDMsImV4cCI6MjA5NTk4MzI0M30.PQD_Y-YkI8Q3Az2Ykeq-jvINqee5IG8f9lpD-5fFz74';
+
+const me=(()=>{const s=sessionStorage.getItem('oasis_staff');if(!s){location.href='index.html';return null;}return JSON.parse(s);})();
+if(me&&me.role!=='Cleaning')location.href='index.html';
+if(me)document.getElementById('sbnm').textContent=me.name;
+function signout(){sessionStorage.clear();location.href='index.html';}
+
+async function api(t,o={}){
+  const{method='GET',filter='',body,select='*',order='',limit=''}=o;
+  let url=`${SUPA}/rest/v1/${t}?select=${select}`;
+  if(filter)url+='&'+filter;if(order)url+='&order='+order;if(limit)url+='&limit='+limit;
+  const h={'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json','Prefer':method==='POST'?'return=representation':'return=minimal'};
+  const r=await fetch(url,{method,headers:h,body:body?JSON.stringify(body):undefined});
+  if(!r.ok){console.error(await r.text());return null;}const t2=await r.text();return t2?JSON.parse(t2):(method==='GET'?[]:true);
+}
+const get=(t,f,x={})=>api(t,{filter:f,...x});
+const post=(t,b)=>api(t,{method:'POST',body:b});
+const patch=(t,f,b)=>api(t,{method:'PATCH',filter:f,body:b});
+
+const ftm=s=>s?new Date(s).toLocaleTimeString('en-ZA',{hour:'2-digit',minute:'2-digit'}):'—';
+const fdt=s=>s?new Date(s).toLocaleDateString('en-ZA',{day:'2-digit',month:'short',year:'numeric'}):'—';
+
+function bdg(t,c){
+  const m={Ready:'#10b981',Processing:'#f59e0b',Received:'#38bdf8',Collected:'#a78bfa',Overdue:'#ef4444'};
+  const col=c||m[t]||'#64748b';
+  return`<span style="padding:2px 9px;border-radius:20px;font-size:11px;font-weight:700;background:${col}22;color:${col};border:1px solid ${col}44">${t}</span>`;
+}
+
+function toast(msg,type='ok'){
+  let w=document.getElementById('tw');
+  if(!w){w=document.createElement('div');w.id='tw';w.style.cssText='position:fixed;bottom:20px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:7px';document.body.appendChild(w);}
+  const d=document.createElement('div');
+  const c={ok:'rgba(16,185,129,.15)',err:'rgba(239,68,68,.15)',info:'rgba(14,165,233,.15)'};
+  const b={ok:'rgba(16,185,129,.3)',err:'rgba(239,68,68,.3)',info:'rgba(14,165,233,.3)'};
+  d.style.cssText=`padding:11px 14px;background:${c[type]};border:1px solid ${b[type]};border-radius:9px;font-size:13px;font-weight:600;color:#f0f6fc;font-family:'Manrope',sans-serif;min-width:200px`;
+  d.textContent=({ok:'✓',err:'✗',info:'ℹ'})[type]+'  '+msg;
+  w.appendChild(d);setTimeout(()=>d.remove(),3200);
+}
+
+function tbl(heads,rows){
+  if(!rows.length)return`<div style="padding:24px;text-align:center;color:rgba(255,255,255,.2);font-size:13px">No orders</div>`;
+  return`<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse">
+    <thead><tr>${heads.map(h=>`<th style="padding:8px 11px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:rgba(255,255,255,.35);text-align:left;border-bottom:1px solid rgba(255,255,255,.06)">${h}</th>`).join('')}</tr></thead>
+    <tbody>${rows.map(r=>`<tr style="border-bottom:1px solid rgba(255,255,255,.03)">${r.map(c=>`<td style="padding:8px 11px;font-size:13px;color:rgba(255,255,255,.72)">${c??'—'}</td>`).join('')}</tr>`).join('')}</tbody>
+  </table></div>`;
+}
+
+function sc(icon,val,lbl,sub,acc='#a78bfa'){
+  return`<div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:13px;padding:16px 18px">
+    <div style="font-size:18px;margin-bottom:7px">${icon}</div>
+    <div style="font-size:24px;font-weight:800;font-family:'Manrope',sans-serif;color:${acc}">${val}</div>
+    <div style="font-size:13px;font-weight:600;color:#f0f6fc;margin-top:2px">${lbl}</div>
+    <div style="font-size:11px;color:rgba(255,255,255,.28);margin-top:1px">${sub}</div>
+  </div>`;
+}
+
+function pnl(title,content,act=''){
+  return`<div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:13px;padding:18px;margin-bottom:13px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:13px">
+      <div style="font-family:'Manrope',sans-serif;font-size:15px;font-weight:800">${title}</div>
+      ${act?`<div>${act}</div>`:''}
+    </div>${content}</div>`;
+}
+
+const PAGES=[
+  {id:'ws',  icon:'📊',lbl:'Workstation', sec:'Overview'},
+  {id:'msg', icon:'💬',lbl:'Messages',    sec:'Overview'},
+  {id:'ann', icon:'📣',lbl:'Announcements',sec:'Overview'},
+  {id:'kb',  icon:'📚',lbl:'Knowledge Base',sec:'Overview'},
+  {id:'ord', icon:'📋',lbl:'My Orders',   sec:'Work'},
+  {id:'qr',  icon:'📷',lbl:'QR Scanner',  sec:'Work'},
+  {id:'iss', icon:'⚠️',lbl:'Report Issue',sec:'Actions'},
+  {id:'sch', icon:'📅',lbl:'Schedule',    sec:'Actions'},
+];
+
+let lastSec='';const sbl=document.getElementById('sbl');
+PAGES.forEach(p=>{
+  if(p.sec!==lastSec){lastSec=p.sec;sbl.innerHTML+=`<div class="sb-sc">${p.sec}</div>`;}
+  sbl.innerHTML+=`<div class="sl" id="sl-${p.id}" onclick="show('${p.id}')"><span style="width:16px;text-align:center">${p.icon}</span><span>${p.lbl}</span></div>`;
+});
+
+const ct=document.getElementById('ct');
+PAGES.forEach(p=>{const d=document.createElement('div');d.className='pg';d.id='p-'+p.id;ct.appendChild(d);});
+
+function show(id){
+  document.querySelectorAll('.pg').forEach(p=>p.style.display='none');
+  const el=document.getElementById('p-'+id);if(el)el.style.display='block';
+  document.querySelectorAll('.sl').forEach(l=>l.classList.toggle('on',l.id==='sl-'+id));
+  document.getElementById('pgt').textContent=PAGES.find(p=>p.id===id)?.lbl||'';
+  stopCam();if(id==='qr')setTimeout(startCam,200);
+}
+
+let D={orders:[],messages:[],kb:[]};
+let ownerId=null;
+
+async function init(){
+  const [ord,msg,kb,owner]=await Promise.all([
+    get('orders','status=neq.Collected',{select:'*,customers(name,phone)',order:'created_at.desc'}),
+    get('messages',`or=(to_staff_id.eq.${me.id},from_staff_id.eq.${me.id},to_staff_id.is.null)`,{select:'*,staff!messages_from_staff_id_fkey(name)',order:'sent_at.desc'}),
+    get('knowledge_base','',{select:'*,staff!knowledge_base_created_by_fkey(name)',order:'updated_at.desc'}),
+    get('staff','role=eq.Owner',{select:'id',order:'created_at.asc',limit:'1'}),
+  ]);
+  ownerId=owner?.[0]?.id||null;
+  D={orders:ord||[],messages:msg||[],kb:kb||[]};
+  rWS();rOrd();rIss();rSch();rMsg();rAnn();rKb();
+}
+
+// ── WORKSTATION
+function rWS(){
+  const el=document.getElementById('p-ws');
+  const ord=D.orders;
+  el.innerHTML=`
+  <div class="sg">
+    ${sc('📥',ord.filter(o=>o.status==='Received').length,  'Received',   'in queue',     '#38bdf8')}
+    ${sc('⚙️',ord.filter(o=>o.status==='Processing').length,'Processing', 'being cleaned','#f59e0b')}
+    ${sc('✅',ord.filter(o=>o.status==='Ready').length,     'Ready',      'for collection','#10b981')}
+    ${sc('🔴',ord.filter(o=>o.status==='Overdue').length,   'Overdue',    'urgent',       '#ef4444')}
+  </div>
+  <div style="background:rgba(167,139,250,.06);border:1px solid rgba(167,139,250,.15);border-radius:10px;padding:12px 14px;margin-bottom:14px;font-size:12px;color:rgba(255,255,255,.5)">
+    💡 Scan a garment QR label to automatically advance its status and log the scan.
+  </div>
+  ${pnl('📋 Quick Update Board',tbl(['Customer','Service','Items','Status','Notes','Action'],
+    ord.slice(0,12).map(o=>[
+      `<span style="font-weight:700">${o.customers?.name||'—'}</span>`,
+      o.service,o.items,bdg(o.status),
+      o.notes?`<span style="color:#f59e0b;font-size:11px">⚠ ${o.notes}</span>`:'—',
+      nextBtn(o)
+    ])
+  ))}`;
+}
+
+let msgStore={};
+function rMsg(){
+  msgStore={};
+  const el=document.getElementById('p-msg');
+  el.innerHTML=`<div style="display:flex;flex-direction:column;gap:14px">
+    <div>${D.messages.length?D.messages.map((m,i)=>{msgStore[i]=m;return`<div style="display:flex;gap:11px;padding:13px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:11px;margin-bottom:7px">
+      <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#7C3AED,#A78BFA);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:11px;flex-shrink:0">${(m.staff?.name||'A').slice(0,2).toUpperCase()}</div>
+      <div style="flex:1"><div style="display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:4px"><div><span style="font-size:13px;font-weight:700">${m.staff?.name||'Owner'}</span> <span style="font-size:11px;color:rgba(255,255,255,.55)">${fdt(m.sent_at)} ${ftm(m.sent_at)}</span></div>${m.from_staff_id!==me.id?`<button class="btn bsm" style="background:rgba(167,139,250,.12);border:1px solid rgba(167,139,250,.25);color:#A78BFA" onclick="replyTo(${i})">Reply</button>`:''}</div><div style="font-size:13px;color:rgba(255,255,255,.75)">${m.body.replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>')}</div></div>
+    </div>`}).join(''):'<div style="padding:24px;text-align:center;color:rgba(255,255,255,.4);font-size:13px">No messages yet</div>'}</div>
+    <div style="padding:15px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:12px">
+      <div style="font-size:13px;font-weight:700;margin-bottom:8px" id="msg-to-label">Send message to Owner</div>
+      <textarea id="msg-body" class="fi" rows="4" style="width:100%;resize:none" placeholder="Type your message"></textarea>
+      <button class="btn bsm" style="margin-top:10px" onclick="sendMsg()">Send →</button>
+    </div>`;
+}
+
+let replyToStaffId=null;
+function replyTo(idx){
+  const m=msgStore[idx];if(!m)return;
+  const body=document.getElementById('msg-body');
+  const label=document.getElementById('msg-to-label');
+  if(!body)return;
+  replyToStaffId=m.from_staff_id||ownerId;
+  const senderName=m.staff?.name||'Owner';
+  body.value=`Reply to ${senderName}:\n> ${m.body.replace(/\n/g,'\n> ')}\n\n`;
+  if(label)label.textContent=`Replying to ${senderName}`;
+  body.focus();
+}
+
+async function sendMsg(){
+  const body=document.getElementById('msg-body')?.value.trim();
+  if(!body){toast('Enter a message','err');return;}
+  const toId=replyToStaffId||ownerId;
+  if(!toId){toast('Recipient not found','err');return;}
+  await post('messages',{from_staff_id:me.id,to_staff_id:toId,body,read:false});
+  toast('Message sent','ok');
+  document.getElementById('msg-body').value='';
+  const label=document.getElementById('msg-to-label');
+  if(label)label.textContent='Send message to Owner';
+  replyToStaffId=null;
+  init();
+}
+
+function rAnn(){
+  const el=document.getElementById('p-ann');
+  const board=D.messages.filter(m=>m.to_staff_id===null||m.to_staff_id===undefined).map(m=>`<div style="padding:13px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:11px;margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><strong>${m.staff?.name||'Staff'}</strong><span style="font-size:11px;color:rgba(255,255,255,.55)">${fdt(m.sent_at)} ${ftm(m.sent_at)}</span></div>
+      <div style="font-size:13px;color:rgba(255,255,255,.78);white-space:pre-wrap">${m.body.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
+    </div>`).join('');
+  el.innerHTML=`<div class="tc">
+    ${pnl('📣 Announcement Board',board||'<div style="padding:24px;text-align:center;color:rgba(255,255,255,.4);font-size:13px">No announcements yet.</div>')}
+    <div style="padding:13px 15px;background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.2);border-radius:10px;font-size:12px;color:rgba(255,255,255,.45)">
+      📣 Only the Owner can post announcements.
+    </div>
+  </div>`;
+}
+
+function rKb(){
+  const el=document.getElementById('p-kb');
+  el.innerHTML=`<div style="display:flex;flex-direction:column;gap:14px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <div style="font-size:15px;font-weight:800">Knowledge Base</div>
+      <button class="btn bsm" onclick="openKbEditor()">+ Add Article</button>
+    </div>
+    ${D.kb.length?D.kb.map(k=>`<div style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:14px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:8px"><div><div style="font-size:14px;font-weight:800">${k.title}</div><div style="font-size:11px;color:rgba(255,255,255,.45);margin-top:3px">${k.staff?.name?`<span style="color:rgba(255,255,255,.55)">${k.staff.name}</span> · `:''}${k.updated_at?fdt(k.updated_at):''}</div></div><button class="btn bsm" onclick="openKbEditor('${k.id}')">Edit</button></div>
+      <div style="font-size:13px;color:rgba(255,255,255,.7);white-space:pre-wrap">${k.body.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
+    </div>`).join(''):'<div style="padding:24px;text-align:center;color:rgba(255,255,255,.4);font-size:13px">No knowledge base articles yet.</div>'}
+  </div>`;
+}
+
+function openModal(title,html){
+  let ov=document.getElementById('mov');
+  if(!ov){ov=document.createElement('div');ov.id='mov';ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(6px);z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px';ov.onclick=e=>{if(e.target===ov)closeModal();};document.body.appendChild(ov);}
+  ov.innerHTML=`<div style="background:#0d1e2e;border:1px solid rgba(255,255,255,.1);border-radius:18px;padding:26px 22px;width:100%;max-width:540px;max-height:90vh;overflow-y:auto;font-family:'Manrope',sans-serif;color:#f0f6fc">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px"><span style="font-family:'Manrope',sans-serif;font-size:17px;font-weight:800">${title}</span><button onclick="closeModal()" style="background:none;border:none;color:rgba(255,255,255,.4);font-size:18px;cursor:pointer">✕</button></div>${html}</div>`;
+  ov.style.display='flex';
+}
+function closeModal(){const o=document.getElementById('mov');if(o)o.style.display='none';}
+
+function openKbEditor(id=''){
+  const item=D.kb.find(x=>x.id===id)||{title:'',body:''};
+  openModal(`${id?'Edit':'Add'} Knowledge Base Article`,
+    `<div class="fg"><label class="fl">Title</label><input class="fi" id="kb-title" value="${(item.title||'').replace(/"/g,'&quot;')}"></div>
+    <div class="fg"><label class="fl">Content</label><textarea class="fi" id="kb-body" rows="8" style="width:100%;resize:none">${(item.body||'').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</textarea></div>
+    <button class="btn" style="width:100%;margin-top:12px" onclick="saveKb('${id}')">Save Article</button>`
+  );
+}
+
+async function saveKb(id=''){
+  const title=(document.getElementById('kb-title')?.value||'').trim();
+  const body=(document.getElementById('kb-body')?.value||'').trim();
+  if(!title||!body){toast('Enter both title and content','err');return;}
+  if(id){await patch('knowledge_base',`id=eq.${id}`,{title,body});}
+  else{await post('knowledge_base',{title,body,created_by:me.id});}
+  toast('Article saved','ok');
+  closeModal();
+  init();
+}
+
+const NEXT={Received:'Processing',Processing:'Ready',Overdue:'Processing'};
+const NEXTCOL={Received:'56,189,248',Processing:'245,158,11'};
+
+function nextBtn(o){
+  const ns=NEXT[o.status];if(!ns)return bdg(o.status);
+  const nc=NEXTCOL[o.status];
+  return`<button class="btn bsm" style="background:rgba(${nc},.15);border:1px solid rgba(${nc},.3);color:rgb(${nc})" onclick="advance('${o.id}','${ns}','${(o.customers?.name||'').replace(/'/g,'')}')">→ ${ns}</button>`;
+}
+
+// ── ADVANCE: updates status + writes audit log
+async function advance(id,ns,name,source='manual'){
+  await patch('orders','id=eq.'+id,{status:ns});
+  await post('audit_logs',{
+    staff_id:me.id,
+    action:'Status Updated',
+    target_id:id,
+    detail:'#'+id.slice(0,8)+' → '+ns+' ('+source+')'
+  });
+  toast((name||'Order')+' → '+ns,'ok');
+  init();
+}
+
+// ── MY ORDERS
+function rOrd(){
+  const orders=D.orders;
+  const groups={};
+  const groupOrder=[];
+  orders.forEach(o=>{
+    const cid=o.customer_id||'unknown';
+    if(!groups[cid]){groups[cid]=[];groupOrder.push(cid);}
+    groups[cid].push(o);
+  });
+
+  if(!groupOrder.length){
+    document.getElementById('p-ord').innerHTML=pnl('📋 All Active Orders','<div style="padding:24px;text-align:center;color:rgba(255,255,255,.2);font-size:13px">No active orders</div>');
+    return;
+  }
+
+  const html=groupOrder.map(cid=>{
+    const ords=groups[cid];
+    const cust=ords[0].customers||{};
+    const total=ords.reduce((s,o)=>s+(parseFloat(o.amount)||0),0);
+    const allReady=ords.every(o=>o.status==='Ready');
+    const statuses=[...new Set(ords.map(o=>o.status))];
+    const headerBadge=allReady?bdg('Ready'):statuses.length===1?bdg(statuses[0]):bdg('Mixed','#a78bfa');
+    const dropDate=fdt(ords[ords.length-1].created_at);
+
+    const rows=ords.map(o=>`
+      <tr style="border-bottom:1px solid rgba(255,255,255,.04)">
+        <td style="padding:9px 12px;font-family:monospace;font-size:11px;color:#a78bfa">${o.id.slice(0,8)}</td>
+        <td style="padding:9px 12px;font-size:13px;color:rgba(255,255,255,.72)">${o.service}</td>
+        <td style="padding:9px 12px;font-size:13px;color:rgba(255,255,255,.72)">${o.items}</td>
+        <td style="padding:9px 12px">${bdg(o.status)}</td>
+        <td style="padding:9px 12px;font-size:11px;color:#f59e0b">${o.notes?`⚠ ${o.notes}`:'—'}</td>
+        <td style="padding:9px 12px">${nextBtn(o)}</td>
+      </tr>`).join('');
+
+    return`<div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:13px;margin-bottom:11px;overflow:hidden">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:11px 14px;background:rgba(255,255,255,.04);border-bottom:1px solid rgba(255,255,255,.07);flex-wrap:wrap;gap:8px">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#7C3AED,#A78BFA);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:11px;flex-shrink:0">${(cust.name||'?').slice(0,2).toUpperCase()}</div>
+          <div>
+            <div style="font-size:14px;font-weight:800">${cust.name||'Unknown'}</div>
+            <div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:1px">📅 ${dropDate} · ${ords.length} order${ords.length>1?'s':''} · 📞 ${cust.phone||'—'}</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          ${headerBadge}
+          <div style="font-size:18px;font-weight:900;color:#a78bfa">R ${total.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,',')}</div>
+        </div>
+      </div>
+      <div style="overflow-x:auto">
+        <table style="width:100%;border-collapse:collapse">
+          <thead><tr>${['ID','Service','Items','Status','Notes','Action'].map(h=>`<th style="padding:7px 12px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:rgba(255,255,255,.3);text-align:left;border-bottom:1px solid rgba(255,255,255,.05)">${h}</th>`).join('')}</tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('p-ord').innerHTML=`
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:13px">
+      <div style="font-size:15px;font-weight:800">📋 All Active Orders <span style="font-size:13px;font-weight:500;color:rgba(255,255,255,.4)">${groupOrder.length} customer${groupOrder.length!==1?'s':''} · ${orders.length} order${orders.length!==1?'s':''}</span></div>
+    </div>
+    ${html}`;
+}
+
+// ── QR SCANNER
+let camLocked=false;
+let zxReader=null;
+
+function startCam(){
+  const vid=document.getElementById('cv');if(!vid)return;
+  const cs=document.getElementById('cs');
+  if(!window.ZXing){
+    if(cs)cs.textContent='Scanner library not loaded — refresh and try again.';
+    showQRUpload();return;
+  }
+  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){
+    if(cs)cs.textContent='Camera API not available — use manual entry or upload a QR image.';
+    showQRUpload();return;
+  }
+  zxReader=new ZXing.BrowserMultiFormatReader();
+  zxReader.listVideoInputDevices().then(devices=>{
+    const rear=devices.find(d=>/back|rear|environment/i.test(d.label))||devices[devices.length-1];
+    const deviceId=rear?rear.deviceId:undefined;
+    if(cs)cs.innerHTML='<span style="color:#10b981">&#9679; Camera active</span> — hold QR label steady';
+    zxReader.decodeFromVideoDevice(deviceId,'cv',(result,err)=>{
+      if(!result)return;
+      if(camLocked)return;
+      camLocked=true;
+      if(navigator.vibrate)navigator.vibrate(80);
+      handleScan(result.getText(),'camera');
+      setTimeout(()=>{camLocked=false;},4000);
+    });
+  }).catch(()=>{
+    if(cs)cs.textContent='Camera unavailable — use manual entry or upload a QR image below.';
+    showQRUpload();
+  });
+}
+
+function showQRUpload(){
+  const up=document.getElementById('qr-upload-wrap');
+  if(up)up.style.display='block';
+}
+
+function scanUploadedQR(input){
+  const file=input.files&&input.files[0];if(!file)return;
+  if(!window.ZXing){toast('Scanner library not loaded','err');return;}
+  const reader=new FileReader();
+  reader.onload=function(e){
+    const img=new Image();
+    img.onload=function(){
+      const cvs=document.createElement('canvas');
+      cvs.width=img.width;cvs.height=img.height;
+      cvs.getContext('2d').drawImage(img,0,0);
+      const r=new ZXing.BrowserMultiFormatReader();
+      r.decodeFromCanvas(cvs).then(result=>{
+        handleScan(result.getText(),'image-upload');
+      }).catch(()=>toast('No QR code found in image','err'));
+    };
+    img.src=e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function stopCam(){
+  if(zxReader){zxReader.reset();zxReader=null;}
+  camLocked=false;
+  const cs=document.getElementById('cs');
+  if(cs)cs.innerHTML='Tap Scan to activate camera';
+}
+
+// ── HANDLE SCAN: auto-advance + log scan event
+async function handleScan(raw, source='manual'){
+  raw=(raw||'').trim();
+  if(/^OASIS:/i.test(raw))raw=raw.split(':')[1]||raw;
+  raw=raw.toLowerCase();
+  const order=D.orders.find(o=>
+    o.id.toLowerCase()===raw||
+    o.id.toLowerCase().slice(0,8)===raw||
+    raw.startsWith(o.id.toLowerCase())||
+    (o.qr_code||'').toLowerCase().includes(raw)||
+    (o.customers?.name||'').toLowerCase()===raw
+  );
+  const res=document.getElementById('sr');if(!res)return;
+
+  if(!order){
+    // Log unknown scan attempt
+    await post('audit_logs',{
+      staff_id:me.id,
+      action:'QR Scan — Not Found',
+      detail:'Unknown scan: "'+raw+'" ('+source+')'
+    });
+    res.innerHTML=`<div style="padding:11px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);border-radius:8px;color:#ef4444;font-size:13px">
+      Not found: "${raw}"<br><span style="font-size:11px;opacity:.7">Try typing the full Order ID manually.</span></div>`;
+    toast('Order not found','err');
+    return;
+  }
+
+  const c=order.customers||{};
+  const ns=NEXT[order.status];
+
+  if(ns){
+    // Auto-advance: update status + write scan log
+    await patch('orders','id=eq.'+order.id,{status:ns});
+    await post('audit_logs',{
+      staff_id:me.id,
+      action:'QR Scan — Status Advanced',
+      target_id:order.id,
+      detail:'#'+order.id.slice(0,8)+' '+order.status+' → '+ns+' ('+source+')'
+    });
+    toast((c.name||'Order')+' → '+ns,'ok');
+    // Update local cache immediately so result card shows new status
+    const idx=D.orders.findIndex(o=>o.id===order.id);
+    if(idx>-1)D.orders[idx].status=ns;
+    res.innerHTML=`<div style="padding:14px;background:rgba(16,185,129,.07);border:1px solid rgba(16,185,129,.25);border-radius:10px">
+      <div style="display:flex;align-items:center;gap:9px;margin-bottom:8px">
+        <span style="font-size:20px">✅</span>
+        <div>
+          <div style="font-size:15px;font-weight:800">${order.id.slice(0,8).toUpperCase()}</div>
+          <div style="font-size:12px;color:rgba(255,255,255,.5);margin-top:1px">${c.name||'—'} · ${order.service} · ${order.items}</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:7px;margin-bottom:8px">
+        ${bdg(order.status)} <span style="color:rgba(255,255,255,.35);font-size:12px">→</span> ${bdg(ns)}
+      </div>
+      <div style="font-size:11px;color:rgba(255,255,255,.35)">📡 Scan logged · ${new Date().toLocaleTimeString('en-ZA',{hour:'2-digit',minute:'2-digit'})}</div>
+    </div>`;
+    init();
+  } else {
+    // Already at final status — log the scan but don't change anything
+    await post('audit_logs',{
+      staff_id:me.id,
+      action:'QR Scan — No Action',
+      target_id:order.id,
+      detail:'#'+order.id.slice(0,8)+' scanned at status: '+order.status+' ('+source+')'
+    });
+    res.innerHTML=`<div style="padding:14px;background:rgba(167,139,250,.06);border:1px solid rgba(167,139,250,.2);border-radius:10px">
+      <div style="font-size:15px;font-weight:800;margin-bottom:5px">${order.id.slice(0,8).toUpperCase()} — ${bdg(order.status)}</div>
+      <div style="font-size:13px;color:rgba(255,255,255,.6);margin-bottom:8px">${c.name||'—'} · ${order.service} · ${order.items}</div>
+      <div style="color:#10b981;font-size:13px;font-weight:700">✓ Final status — no further action needed</div>
+      <div style="font-size:11px;color:rgba(255,255,255,.35);margin-top:6px">📡 Scan logged · ${new Date().toLocaleTimeString('en-ZA',{hour:'2-digit',minute:'2-digit'})}</div>
+    </div>`;
+    toast('Already at '+order.status+' — scan logged','info');
+  }
+}
+
+function setupQR(){
+  document.getElementById('p-qr').innerHTML=pnl('📷 Garment QR Scanner',`
+    <div style="background:rgba(167,139,250,.06);border:1px solid rgba(167,139,250,.15);border-radius:8px;padding:10px 13px;margin-bottom:12px;font-size:12px;color:rgba(255,255,255,.5)">
+      Hold the printed QR label to the camera. Status advances automatically — no button needed. Every scan is logged to the audit trail.
+    </div>
+    <div class="cam"><video id="cv" playsinline autoplay muted></video><canvas id="cc"></canvas></div>
+    <div id="cs" style="font-size:12px;color:var(--mut);margin-bottom:9px;text-align:center">Tap Scan to start</div>
+    <div style="display:flex;gap:7px;margin-bottom:13px">
+      <button class="btn bsm" onclick="startCam()">▶ Scan</button>
+      <button class="btn bsm bgh" onclick="stopCam()">⏹ Stop</button>
+    </div>
+    <div id="qr-upload-wrap" style="display:none;margin-top:10px;padding:11px 13px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:9px"><div style="font-size:11px;color:var(--mut);font-weight:700;text-transform:uppercase;margin-bottom:7px">&#128193; Scan from Image</div><input type="file" accept="image/*" onchange="scanUploadedQR(this)" style="font-size:12px;color:rgba(255,255,255,.7);width:100%"></div>
+    <div class="fg"><label class="fl">Manual Lookup</label>
+      <div style="display:flex;gap:7px">
+        <input class="fi" style="flex:1" id="mi" placeholder="Paste order ID or customer name">
+        <button class="btn bsm" onclick="handleScan(document.getElementById('mi').value.trim(),'manual')">Look Up</button>
+      </div>
+    </div>
+    <div id="sr"></div>`);
+}
+
+// ── REPORT ISSUE
+function rIss(){
+  document.getElementById('p-iss').innerHTML=pnl('⚠️ Report an Issue',`
+    <div class="fg"><label class="fl">Order</label>
+      <select class="fi" id="io">
+        <option value="">Select order…</option>
+        ${D.orders.map(o=>`<option value="${o.id}">${o.customers?.name||o.id.slice(0,8)} — ${o.service}</option>`).join('')}
+      </select>
+    </div>
+    <div class="fg"><label class="fl">Issue Type</label>
+      <select class="fi" id="it">
+        <option>Stain not removed</option>
+        <option>Garment damage</option>
+        <option>Missing item</option>
+        <option>Machine fault</option>
+        <option>Wrong service applied</option>
+        <option>Other</option>
+      </select>
+    </div>
+    <div class="fg"><label class="fl">Description</label>
+      <textarea class="fi" id="id2" rows="3" style="resize:none" placeholder="Describe the issue in detail…"></textarea>
+    </div>
+    <button class="btn" style="width:100%" onclick="submitIss()">Flag Issue →</button>`);
+}
+
+async function submitIss(){
+  const oid=document.getElementById('io')?.value;
+  const type=document.getElementById('it')?.value;
+  const desc=(document.getElementById('id2')?.value||'').trim();
+  if(!oid){toast('Select an order','err');return;}
+  if(!desc){toast('Describe the issue','err');return;}
+  const detail=type+': '+desc;
+  await patch('orders','id=eq.'+oid,{notes:detail});
+  await post('audit_logs',{staff_id:me.id,action:'Issue Flagged',target_id:oid,detail:'#'+oid.slice(0,8)+' — '+detail});
+  toast('Issue flagged','ok');
+  document.getElementById('id2').value='';
+  init();
+}
+
+// ── SCHEDULE
+function rSch(){
+  const days=['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+  document.getElementById('p-sch').innerHTML=pnl('📅 My Schedule',`
+    <div style="font-size:13px;color:rgba(255,255,255,.5);margin-bottom:14px">Current shift: <strong style="color:#f0f6fc">08:00 – 16:30</strong></div>
+    ${tbl(['Day','Shift','Status'],
+      days.map((d,i)=>[
+        `<span style="font-weight:700">${d}</span>`,
+        i<5?'08:00 – 16:30':i===5?'08:00 – 13:00':'—',
+        i<5?'<span style="color:#10b981;font-weight:700">Working</span>':i===5?'<span style="color:#f59e0b;font-weight:700">Half Day</span>':'<span style="color:#64748b">Off</span>'
+      ])
+    )}
+    <div style="margin-top:13px;padding:12px;background:rgba(167,139,250,.06);border:1px solid rgba(167,139,250,.15);border-radius:8px;font-size:12px;color:rgba(255,255,255,.45)">
+      Shift changes: contact the owner on <strong style="color:#a78bfa">063 335 5885</strong>
+    </div>`);
+}
+
+// ── INIT
+init();setupQR();show('ws');
+</script>
+</body></html>

@@ -1,0 +1,489 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Oasis — Staff Login</title>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--sky:#1D8EF0;--wht:#ffffff;--navy:#0a1628}
+html,body{height:100%;font-family:'Manrope',sans-serif;overflow:hidden}
+
+/* ── HERO BG ── */
+.hero{position:fixed;inset:0;z-index:0;background:linear-gradient(135deg,#0a1628 0%,#0d2444 40%,#0a2240 60%,#061020 100%)}
+.hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 30% 60%,rgba(14,165,233,.18) 0%,transparent 60%),radial-gradient(ellipse at 80% 20%,rgba(13,148,136,.12) 0%,transparent 50%);animation:bgshift 8s ease-in-out infinite alternate}
+@keyframes bgshift{0%{opacity:.8}100%{opacity:1}}
+.hero video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:brightness(.45)}
+.hero::after{content:'';position:absolute;inset:0;background:linear-gradient(110deg,rgba(5,15,35,.8) 38%,rgba(5,15,35,.25) 100%)}
+
+/* ── NAVBAR ── */
+nav{position:fixed;top:0;left:0;right:0;z-index:10;display:flex;align-items:center;justify-content:space-between;padding:20px 48px}
+.nav-logo{display:flex;align-items:center;gap:12px}
+.nav-logo-img{width:52px;height:52px;border-radius:14px;object-fit:cover;box-shadow:0 4px 18px rgba(0,0,0,.4)}
+.nav-logo-name{font-size:20px;font-weight:800;color:#fff;letter-spacing:-.3px}
+.nav-links{display:flex;align-items:center;gap:32px}
+.nav-links a{color:rgba(255,255,255,.75);font-size:14px;font-weight:500;text-decoration:none;transition:color .2s}
+.nav-links a:hover{color:#fff}
+.nav-portal{display:flex;align-items:center;gap:8px;padding:10px 22px;background:var(--sky);border-radius:50px;color:#fff;font-size:14px;font-weight:700;cursor:pointer;border:none;transition:all .2s}
+.nav-portal:hover{background:#1a7fd4;transform:translateY(-1px)}
+.nav-portal svg{width:16px;height:16px}
+
+/* ── LAYOUT ── */
+.layout{position:relative;z-index:1;height:100vh;display:flex;align-items:center;padding:0 48px;gap:40px}
+
+/* ── LEFT HERO TEXT ── */
+.hero-text{flex:1;padding-top:60px}
+.hero-h{font-size:clamp(40px,5vw,72px);font-weight:900;color:#fff;line-height:1.05;letter-spacing:-2px;margin-bottom:20px}
+.hero-sub{font-size:16px;color:rgba(255,255,255,.6);line-height:1.7;max-width:400px;margin-bottom:36px;font-weight:400}
+.hero-cta{display:inline-flex;align-items:center;gap:10px;padding:14px 28px;background:#fff;border-radius:50px;color:var(--navy);font-size:15px;font-weight:800;cursor:pointer;border:none;transition:all .2s;text-decoration:none}
+.hero-cta:hover{transform:translateY(-2px);box-shadow:0 12px 32px rgba(0,0,0,.25)}
+.hero-cta-ic{width:32px;height:32px;background:var(--sky);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px}
+
+/* ── DOTS ── */
+.dots{display:flex;gap:8px;margin-top:40px}
+.dot{width:24px;height:4px;border-radius:2px;background:rgba(255,255,255,.3)}
+.dot.on{background:#fff;width:32px}
+
+/* ── LOGIN CARD ── */
+.card{width:380px;flex-shrink:0;background:rgba(10,22,40,.82);border:1px solid rgba(255,255,255,.12);border-radius:20px;padding:36px 32px;backdrop-filter:blur(28px);-webkit-backdrop-filter:blur(28px);box-shadow:0 32px 80px rgba(0,0,0,.5);margin-top:40px;max-height:calc(100vh - 120px);overflow-y:auto}
+
+.card-eyebrow{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--sky);margin-bottom:8px}
+.card-title{font-size:26px;font-weight:900;color:#fff;letter-spacing:-.5px;margin-bottom:4px}
+.card-sub{font-size:13px;color:rgba(255,255,255,.45);margin-bottom:24px;font-weight:400}
+
+/* role tabs */
+.rtabs{display:flex;gap:6px;margin-bottom:22px;background:rgba(255,255,255,.05);border-radius:10px;padding:4px}
+.rt{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:8px 6px;border-radius:8px;border:none;background:none;cursor:pointer;font-family:'Manrope',sans-serif;font-size:12px;font-weight:600;color:rgba(255,255,255,.45);transition:all .2s}
+.rt svg{width:14px;height:14px;opacity:.6;flex-shrink:0}
+.rt.on{background:var(--sky);color:#fff}
+.rt.on svg{opacity:1}
+.rt:hover:not(.on){background:rgba(255,255,255,.07);color:rgba(255,255,255,.7)}
+
+/* form */
+.fg{margin-bottom:16px}
+.fl{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.4);display:block;margin-bottom:7px}
+.fi-wrap{position:relative}
+.fi{width:100%;padding:12px 14px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:10px;color:#fff;font-family:'Manrope',sans-serif;font-size:14px;font-weight:500;outline:none;transition:all .2s}
+.fi:focus{border-color:rgba(29,142,240,.6);background:rgba(29,142,240,.08)}
+.fi::placeholder{color:rgba(255,255,255,.25)}
+.fi-eye{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:rgba(255,255,255,.3);cursor:pointer;padding:4px;font-size:16px;line-height:1}
+.fi-eye:hover{color:rgba(255,255,255,.6)}
+
+.row-opts{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.rem{display:flex;align-items:center;gap:7px;font-size:12px;color:rgba(255,255,255,.4);cursor:pointer}
+.rem input{width:14px;height:14px;accent-color:var(--sky)}
+.fpass{font-size:12px;color:var(--sky);text-decoration:none;font-weight:600}
+.fpass:hover{color:#60b4ff}
+
+.signin{width:100%;padding:13px;background:var(--sky);border:none;border-radius:12px;color:#fff;font-family:'Manrope',sans-serif;font-size:15px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;transition:all .2s;letter-spacing:-.2px}
+.signin:hover{background:#1a7fd4;transform:translateY(-1px);box-shadow:0 8px 24px rgba(29,142,240,.35)}
+.signin:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.signin-ic{width:28px;height:28px;background:rgba(255,255,255,.18);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px}
+
+.div{display:flex;align-items:center;gap:10px;margin:18px 0;color:rgba(255,255,255,.2);font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase}
+.div::before,.div::after{content:'';flex:1;height:1px;background:rgba(255,255,255,.08)}
+
+/* quick demo */
+.demo-label{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.3);text-align:center;margin-bottom:10px}
+.dg{display:flex;gap:6px}
+.db{flex:1;padding:9px 6px;border-radius:9px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.03);cursor:pointer;font-family:'Manrope',sans-serif;font-size:11px;font-weight:700;color:rgba(255,255,255,.4);transition:all .15s;display:flex;align-items:center;justify-content:center;gap:5px}
+.db:hover{border-color:rgba(29,142,240,.4);color:rgba(29,142,240,.9);background:rgba(29,142,240,.07)}
+
+.err{padding:10px 13px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);border-radius:9px;font-size:12px;color:#f87171;margin-bottom:14px;display:none;font-weight:600}
+.err.show{display:block}
+.warn{padding:10px 13px;background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.25);border-radius:9px;font-size:12px;color:#fbbf24;margin-bottom:14px;display:none;font-weight:600}
+.warn.show{display:block}
+.spin{width:14px;height:14px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite;display:inline-block}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* scrollbar */
+.card::-webkit-scrollbar{width:4px}
+.card::-webkit-scrollbar-track{background:transparent}
+.card::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:2px}
+
+@media(max-width:900px){
+  nav{padding:16px 20px}
+  .layout{padding:0 20px;flex-direction:column;justify-content:center;gap:20px}
+  .hero-text{padding-top:80px;text-align:center}
+  .hero-sub,.hero-cta{display:none}
+  .card{width:100%;max-width:400px;margin:0 auto}
+  .dots{justify-content:center}
+}
+</style>
+</head>
+<body>
+
+<!-- HERO BG -->
+<div class="hero">
+  <video autoplay muted loop playsinline id="bgVideo" style="width:100%;height:100%;object-fit:cover;filter:brightness(.45)">
+    <source src="8756816-uhd_2160_4096_25fps.mp4" type="video/mp4">
+    <source src="8756816-uhd_2160_4096_25fps" type="video/mp4">
+  </video>
+</div>
+
+<!-- NAVBAR -->
+<nav>
+  <div class="nav-logo">
+    <img class="nav-logo-img" src="https://i.postimg.cc/g21XrwWS/Gemini-Generated-Image-4r9ct4r9ct4r9ct4.png" alt="Oasis" id="logoImg" style="object-position:center">
+    <span class="nav-logo-name">Oasis</span>
+  </div>
+</nav>
+
+<!-- MAIN LAYOUT -->
+<div class="layout">
+
+  <!-- LEFT: hero text -->
+  <div class="hero-text">
+    <div class="hero-h">Fresh clothes,<br>zero effort.</div>
+    <div class="hero-sub">Your all-in-one laundry management system — track orders, manage staff, handle billing, and delight customers. Fast. Hygienic. Reliable.</div>
+    <a class="hero-cta" href="#" onclick="document.querySelector('.card').scrollIntoView({behavior:'smooth'});return false">
+      Open System
+      <div class="hero-cta-ic">→</div>
+    </a>
+    <div class="dots">
+      <div class="dot on"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+    </div>
+  </div>
+
+  <!-- RIGHT: login card -->
+  <div class="card">
+    <div class="card-eyebrow">Staff Access</div>
+    <div class="card-title">Welcome back</div>
+    <div class="card-sub">Sign in to the Oasis management portal</div>
+
+    <!-- role tabs -->
+    <div class="rtabs">
+      <button class="rt on" id="r-Owner" onclick="setRole('Owner')">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        Owner
+      </button>
+      <button class="rt" id="r-Counter" onclick="setRole('Counter')">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+        Counter
+      </button>
+      <button class="rt" id="r-Cleaning" onclick="setRole('Cleaning')">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        Cleaning
+      </button>
+    </div>
+
+    <div class="err" id="err"></div>
+    <div class="warn" id="warn"></div>
+
+    <div class="fg">
+      <label class="fl">Email Address</label>
+      <div class="fi-wrap">
+        <input class="fi" type="email" id="email" placeholder="owner@oasislaundry.co.za" autocomplete="email">
+      </div>
+    </div>
+
+    <div class="fg">
+      <label class="fl">Password</label>
+      <div class="fi-wrap">
+        <input class="fi" type="password" id="pin" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')login()" style="padding-right:42px">
+        <button class="fi-eye" onclick="togglePw()" id="eyeBtn">👁</button>
+      </div>
+    </div>
+
+    <div class="row-opts">
+      <label class="rem"><input type="checkbox" id="rem"> Remember me</label>
+      <a class="fpass" href="#" onclick="openForgot();return false">Forgot password?</a>
+    </div>
+
+    <button class="signin" id="signBtn" onclick="login()">
+      <span id="signLabel">Sign in</span>
+      <div class="signin-ic">→</div>
+    </button>
+
+    
+
+<script>
+const SUPA='https://lyzuwgovltrkwexzqtdv.supabase.co';
+const KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx5enV3Z292bHRya3dleHpxdGR2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA0MDcyNDMsImV4cCI6MjA5NTk4MzI0M30.PQD_Y-YkI8Q3Az2Ykeq-jvINqee5IG8f9lpD-5fFz74';
+const DEMOS={Owner:{email:'nk@oasis.co.za',pin:'owner123'},Counter:{email:'ayanda@oasis.co.za',pin:'counter123'},Cleaning:{email:'bongani@oasis.co.za',pin:'cleaning123'}};
+const DEST={Owner:'owner.html',Counter:'counter.html',Cleaning:'cleaning.html'};
+let role='Owner',pwVisible=false;
+
+// ── SECURITY: Failed login tracking ──────────────────────────
+// Stored in localStorage so lockout persists across page refreshes.
+// Key: 'oasis_lock_<email>', Value: {count, lockedUntil}
+const MAX_ATTEMPTS = 3;
+const LOCKOUT_MINS = 5;
+
+function getLockData(email){
+  try{ return JSON.parse(localStorage.getItem('oasis_lock_'+email)||'{}'); }
+  catch(e){ return {}; }
+}
+function setLockData(email, data){
+  localStorage.setItem('oasis_lock_'+email, JSON.stringify(data));
+}
+function clearLockData(email){
+  localStorage.removeItem('oasis_lock_'+email);
+}
+function isLocked(email){
+  const d=getLockData(email);
+  if(!d.lockedUntil) return false;
+  if(Date.now() < d.lockedUntil) return true;
+  // lockout expired — clear it
+  clearLockData(email);
+  return false;
+}
+function recordFailedAttempt(email){
+  const d=getLockData(email);
+  const count=(d.count||0)+1;
+  if(count>=MAX_ATTEMPTS){
+    setLockData(email,{count,lockedUntil:Date.now()+LOCKOUT_MINS*60*1000});
+  } else {
+    setLockData(email,{count});
+  }
+  return count;
+}
+function getRemainingMins(email){
+  const d=getLockData(email);
+  if(!d.lockedUntil) return 0;
+  return Math.ceil((d.lockedUntil-Date.now())/60000);
+}
+
+// ── Log failed login to audit_logs ───────────────────────────
+async function logFailedLogin(email, reason){
+  try{
+    await fetch(`${SUPA}/rest/v1/audit_logs`,{
+      method:'POST',
+      headers:{apikey:KEY,Authorization:'Bearer '+KEY,'Content-Type':'application/json','Prefer':'return=minimal'},
+      body:JSON.stringify({
+        staff_id: null,
+        action: 'Failed Login Attempt',
+        detail: 'Email: '+email+' | Reason: '+reason+' | Time: '+new Date().toLocaleString('en-ZA')
+      })
+    });
+  }catch(e){ /* silent — don't block login flow */ }
+}
+
+function setRole(r){
+  role=r;
+  document.querySelectorAll('.rt').forEach(b=>b.classList.remove('on'));
+  document.getElementById('r-'+r).classList.add('on');
+}
+
+function togglePw(){
+  const el=document.getElementById('pin');
+  pwVisible=!pwVisible;
+  el.type=pwVisible?'text':'password';
+  document.getElementById('eyeBtn').textContent=pwVisible?'🙈':'👁';
+}
+
+function showErr(m){
+  const e=document.getElementById('err');
+  e.textContent=m;e.classList.add('show');
+  document.getElementById('warn').classList.remove('show');
+}
+function showWarn(m){
+  const w=document.getElementById('warn');
+  w.textContent=m;w.classList.add('show');
+  document.getElementById('err').classList.remove('show');
+}
+function clearMsgs(){
+  document.getElementById('err').classList.remove('show');
+  document.getElementById('warn').classList.remove('show');
+}
+
+function demo(r){
+  setRole(r);
+  document.getElementById('email').value=DEMOS[r].email;
+  document.getElementById('pin').value=DEMOS[r].pin;
+  login();
+}
+
+async function login(){
+  const email=document.getElementById('email').value.trim().toLowerCase();
+  const pin=document.getElementById('pin').value.trim();
+  const btn=document.getElementById('signBtn');
+  const lbl=document.getElementById('signLabel');
+  clearMsgs();
+
+  if(!email||!pin){showErr('Please enter your email and password.');return;}
+
+  // ── LOCKOUT CHECK ─────────────────────────────────────────
+  if(isLocked(email)){
+    const mins=getRemainingMins(email);
+    showErr('🔒 Account locked — too many failed attempts. Try again in '+mins+' minute'+(mins!==1?'s':'')+'.');
+    await logFailedLogin(email,'Account locked');
+    return;
+  }
+  btn.disabled=true;
+  lbl.innerHTML='<span class="spin"></span>';
+
+  try{
+    const res=await fetch(`${SUPA}/rest/v1/staff?email=eq.${encodeURIComponent(email)}&active=eq.true&select=id,name,role,email,pin_hash`,{
+      headers:{apikey:KEY,Authorization:'Bearer '+KEY}
+    });
+    const data=await res.json();
+
+    // ── NO ACCOUNT FOUND ────────────────────────────────────
+    if(!data||!data.length){
+      const count=recordFailedAttempt(email);
+      await logFailedLogin(email,'No active account found');
+      showErr('No active account found for that email.');
+      return;
+    }
+
+    const s=data[0];
+
+    // ── WRONG PIN ───────────────────────────────────────────
+    if(s.pin_hash!==pin){
+      const count=recordFailedAttempt(email);
+      await logFailedLogin(email,'Incorrect PIN (attempt '+count+' of '+MAX_ATTEMPTS+')');
+
+      if(count>=MAX_ATTEMPTS){
+        showErr('🔒 Account locked after '+MAX_ATTEMPTS+' failed attempts. Try again in '+LOCKOUT_MINS+' minutes.');
+      } else {
+        const remaining=MAX_ATTEMPTS-count;
+        showWarn('⚠️ Incorrect PIN. '+remaining+' attempt'+(remaining!==1?'s':'')+' remaining before lockout.');
+      }
+      return;
+    }
+
+    // ── WRONG ROLE TAB ──────────────────────────────────────
+    if(s.role!==role){
+      showErr('This account is '+s.role+' — select the correct role tab.');
+      return;
+    }
+
+    // ── SUCCESS — clear any lockout data ────────────────────
+    clearLockData(email);
+    const{pin_hash:_,...safeStaff}=s;
+    sessionStorage.setItem('oasis_staff',JSON.stringify(safeStaff));
+    window.location.href=DEST[s.role];
+
+  }catch(e){
+    showErr('Connection error. Check your internet connection.');
+  }finally{
+    btn.disabled=false;
+    lbl.textContent='Sign in';
+  }
+}
+
+// ── FORGOT PASSWORD ─────────────────────────────────────────────
+function openForgot(){
+  document.getElementById('fp-ov').style.display='flex';
+  document.getElementById('fp-email').value='';
+  document.getElementById('fp-err').style.display='none';
+  document.getElementById('fp-success').style.display='none';
+  document.getElementById('fp-form').style.display='block';
+  setTimeout(()=>document.getElementById('fp-email').focus(),100);
+}
+function closeForgot(){document.getElementById('fp-ov').style.display='none';}
+
+async function submitForgot(){
+  const email=(document.getElementById('fp-email').value||'').trim().toLowerCase();
+  const errEl=document.getElementById('fp-err');
+  const btn=document.getElementById('fp-btn');
+  const lbl=document.getElementById('fp-lbl');
+  errEl.style.display='none';
+  if(!email){showFpErr('Enter your email address.');return;}
+
+  btn.disabled=true;lbl.innerHTML='<span class="spin"></span>';
+
+  try{
+    const res=await fetch(`${SUPA}/rest/v1/staff?email=eq.${encodeURIComponent(email)}&select=id,name,role,email`,{
+      headers:{apikey:KEY,Authorization:'Bearer '+KEY}
+    });
+    const data=await res.json();
+
+    if(!data||!data.length){
+      showFpErr('No account found for that email address.');return;
+    }
+
+    const staff=data[0];
+
+    await fetch(`${SUPA}/rest/v1/audit_logs`,{
+      method:'POST',
+      headers:{apikey:KEY,Authorization:'Bearer '+KEY,'Content-Type':'application/json','Prefer':'return=minimal'},
+      body:JSON.stringify({
+        staff_id:staff.id,
+        action:'Password Reset Requested',
+        detail:staff.name+' ('+staff.role+') requested a PIN reset. Owner must reset via Staff Management.'
+      })
+    });
+
+    document.getElementById('fp-form').style.display='none';
+    document.getElementById('fp-success').style.display='block';
+    document.getElementById('fp-who').textContent=staff.name;
+    document.getElementById('fp-role').textContent=staff.role;
+
+  }catch(e){showFpErr('Connection error. Try again.');}
+  finally{btn.disabled=false;lbl.textContent='Send Request';}
+}
+
+function showFpErr(msg){
+  const e=document.getElementById('fp-err');e.textContent=msg;e.style.display='block';
+}
+
+// Redirect if already logged in
+const s=sessionStorage.getItem('oasis_staff');
+if(s){try{const st=JSON.parse(s);if(DEST[st.role])window.location.href=DEST[st.role];}catch(e){sessionStorage.clear();}}
+</script>
+
+<!-- ── FORGOT PASSWORD MODAL ── -->
+<div id="fp-ov" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(8px);z-index:100;align-items:center;justify-content:center;padding:20px" onclick="if(event.target===this)closeForgot()">
+  <div style="background:#0d1e2e;border:1px solid rgba(255,255,255,.12);border-radius:20px;padding:32px 28px;width:100%;max-width:420px;font-family:'Manrope',sans-serif">
+
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px">
+      <div>
+        <div style="font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#1D8EF0;margin-bottom:6px">Password Reset</div>
+        <div style="font-size:22px;font-weight:900;color:#fff;letter-spacing:-.4px">Forgot your PIN?</div>
+      </div>
+      <button onclick="closeForgot()" style="background:none;border:none;color:rgba(255,255,255,.35);font-size:20px;cursor:pointer;line-height:1;padding:4px">✕</button>
+    </div>
+
+    <div id="fp-form">
+      <div style="background:rgba(29,142,240,.07);border:1px solid rgba(29,142,240,.2);border-radius:10px;padding:12px 14px;margin-bottom:20px;font-size:13px;color:rgba(255,255,255,.6);line-height:1.6">
+        Enter your email address. If an account exists, a reset request will be sent to the <strong style="color:#f0f6fc">Owner / Admin</strong> who will reset your PIN and notify you.
+      </div>
+
+      <div id="fp-err" style="display:none;padding:10px 13px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);border-radius:9px;font-size:12px;color:#f87171;font-weight:600;margin-bottom:14px"></div>
+
+      <div style="margin-bottom:16px">
+        <label style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.4);display:block;margin-bottom:7px">Your Email Address</label>
+        <input id="fp-email" type="email" placeholder="ayanda@oasis.co.za" autocomplete="email"
+          onkeydown="if(event.key==='Enter')submitForgot()"
+          style="width:100%;padding:12px 14px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:10px;color:#fff;font-family:'Manrope',sans-serif;font-size:14px;font-weight:500;outline:none;transition:all .2s"
+          onfocus="this.style.borderColor='rgba(29,142,240,.6)';this.style.background='rgba(29,142,240,.08)'"
+          onblur="this.style.borderColor='rgba(255,255,255,.1)';this.style.background='rgba(255,255,255,.07)'">
+      </div>
+
+      <button id="fp-btn" onclick="submitForgot()" style="width:100%;padding:13px;background:#1D8EF0;border:none;border-radius:11px;color:#fff;font-family:'Manrope',sans-serif;font-size:14px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:all .2s"
+        onmouseover="this.style.background='#1a7fd4'" onmouseout="this.style.background='#1D8EF0'">
+        <span id="fp-lbl">Send Reset Request</span>
+        <span style="width:26px;height:26px;background:rgba(255,255,255,.18);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px">→</span>
+      </button>
+
+      <div style="text-align:center;margin-top:14px">
+        <a href="#" onclick="closeForgot();return false" style="font-size:12px;color:rgba(255,255,255,.35);font-weight:600;text-decoration:none">← Back to sign in</a>
+      </div>
+    </div>
+
+    <div id="fp-success" style="display:none;text-align:center;padding:10px 0">
+      <div style="font-size:44px;margin-bottom:16px">✅</div>
+      <div style="font-size:18px;font-weight:800;color:#fff;margin-bottom:8px">Request sent!</div>
+      <div style="font-size:13px;color:rgba(255,255,255,.5);line-height:1.7;margin-bottom:6px">
+        A reset request has been logged for<br>
+        <strong style="color:#f0f6fc" id="fp-who"></strong>
+        (<span id="fp-role"></span>).
+      </div>
+      <div style="font-size:13px;color:rgba(255,255,255,.5);line-height:1.7;margin-bottom:24px">
+        The <strong style="color:#1D8EF0">Owner</strong> will see this in the Audit Log under<br>
+        <strong style="color:#f0f6fc">Owner → Audit Log</strong> and reset your PIN via<br>
+        <strong style="color:#f0f6fc">Owner → Staff → Deactivate/Reset</strong>.
+      </div>
+      <div style="background:rgba(29,142,240,.07);border:1px solid rgba(29,142,240,.15);border-radius:10px;padding:12px 14px;font-size:12px;color:rgba(255,255,255,.45);margin-bottom:20px;text-align:left;line-height:1.7">
+        📞 You can also contact the owner directly:<br>
+        <strong style="color:#f0f6fc">Nkosinathi K. — 063 335 5885</strong>
+      </div>
+      <button onclick="closeForgot()" style="padding:11px 28px;background:#1D8EF0;border:none;border-radius:10px;color:#fff;font-family:'Manrope',sans-serif;font-size:14px;font-weight:700;cursor:pointer">Back to Sign In</button>
+    </div>
+
+  </div>
+</div>
+
+</body></html>
