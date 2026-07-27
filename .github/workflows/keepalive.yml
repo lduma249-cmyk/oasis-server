@@ -26,7 +26,7 @@ jobs:
             -H "Content-Type: application/json" \
             -H "Prefer: return=minimal" \
             -d '{
-              "sensor_id":"00744b83-354d-493c-8067-6a74aabf4f59",
+              "sensor_id":"26da909b-bc65-4095-a1c7-dabfe1553724",
               "event":"GitHub Keep Alive",
               "detail":"Automatic keep-alive from GitHub Actions"
             }'
