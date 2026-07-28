@@ -400,54 +400,33 @@ async function submitDrop(){
 
   const totalAmt=svcLines.reduce((s,l)=>s+(PRICES[l.sv]||0)*l.qt,0);
 
-  // Create one order per service line
-  const createdOrders=[];
-  const failedLines=[];
-  for(const l of svcLines){
-    const price=(PRICES[l.sv]||0)*l.qt;
-    const itemsDesc=l.sv+' × '+l.qt;
-    try{
-      const rows=await post('orders',{
-        customer_id:cust.id,staff_id:me.id,
-        service:l.sv,items:itemsDesc,
-        status:'Received',amount:price,discount:0,
-        qr_code:'pending',notes:no
-      });
-      const order=(rows&&rows[0])||{};
-      if(order.id){
-        const qrData='OASIS:'+order.id+':'+name+':'+l.sv;
-        await patch('orders','id=eq.'+order.id,{qr_code:order.id});
-        order.qr_code=qrData;
-        createdOrders.push({...order,_svcLabel:l.sv+(l.qt>1?' × '+l.qt:'')});
-      } else {
-        failedLines.push(l.sv);
-      }
-    }catch(e){
-      failedLines.push(l.sv);
-    }
-  }
+  // Combine all service lines into ONE order (one order = one drop-off, many items)
+  const serviceLabel=svcLines.map(l=>l.sv).join(', ');
+  const itemsDesc=svcLines.map(l=>l.sv+' × '+l.qt).join(' · ');
 
-  if(failedLines.length){
-    toast('⚠️ Failed to save: '+failedLines.join(', ')+' — check connection and retry','err');
-  }
+  let order={};
+  try{
+    const rows=await post('orders',{
+      customer_id:cust.id,staff_id:me.id,
+      service:serviceLabel,items:itemsDesc,
+      status:'Received',amount:totalAmt,discount:0,
+      qr_code:'pending',notes:no
+    });
+    order=(rows&&rows[0])||{};
+  }catch(e){}
+
+  if(!order.id){toast('⚠️ Failed to save order — check connection and retry','err');return;}
+
+  const qrData='OASIS:'+order.id+':'+name+':'+serviceLabel;
+  await patch('orders','id=eq.'+order.id,{qr_code:order.id});
 
   // Single audit log entry summarising all services
-  const svcSummary=svcLines.map(l=>l.sv+(l.qt>1?' ×'+l.qt:'')).join(', ');
   await post('audit_logs',{staff_id:me.id,action:'Order Created',
-    detail:name+' — '+svcSummary+' — '+rnd(totalAmt)+(createdOrders.length>1?' ('+createdOrders.length+' orders)':'')});
+    detail:name+' — '+itemsDesc+' — '+rnd(totalAmt)});
 
-  if(createdOrders.length===0){toast('No orders were saved — please try again','err');return;}
+  toast('✓ Order created for '+name+' — '+itemsDesc,'ok');
 
-  toast('✓ '+createdOrders.length+' order'+(createdOrders.length>1?'s':'')+' created for '+name+' — '+createdOrders.map(o=>o._svcLabel).join(', '),'ok');
-
-  // Show a label for EACH order so nothing gets missed
-  if(createdOrders.length===1){
-    const o=createdOrders[0];
-    showQRLabel(o.id,name,o._svcLabel,o.items,o.qr_code,'');
-  } else {
-    // Build a multi-label modal showing all orders for this drop-off
-    showMultiQRLabel(createdOrders,name);
-  }
+  showQRLabel(order.id,name,serviceLabel,itemsDesc,qrData,'');
 
   // Reset form
   svcLines=[];renderSvcLines();
@@ -550,7 +529,7 @@ function rQueue(){
       <tr style="border-bottom:1px solid rgba(255,255,255,.04)">
         <td style="padding:9px 12px;font-family:monospace;font-size:11px;color:#38bdf8">${o.id.slice(0,8)}</td>
         <td style="padding:9px 12px;font-size:13px;color:rgba(255,255,255,.72)">${o.service}</td>
-        <td style="padding:9px 12px;font-size:13px;color:rgba(255,255,255,.72)">${o.items}</td>
+        <td style="padding:9px 12px;font-size:13px;color:rgba(255,255,255,.72);white-space:normal;max-width:220px">${o.items}</td>
         <td style="padding:9px 12px">${bdg(o.status)}</td>
         <td style="padding:9px 12px;font-size:13px;font-weight:700;color:#f59e0b">${rnd(o.amount)}</td>
         <td style="padding:9px 12px">
