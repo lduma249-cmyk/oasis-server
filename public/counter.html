@@ -390,6 +390,16 @@ async function submitDrop(){
 
   // Find or create customer
   let cust=D.customers.find(c=>c.phone===ph||c.phone===phClean);
+
+  // Guard: phone already belongs to a different customer name — don't silently merge
+  if(cust){
+    const norm=s=>(s||'').trim().toLowerCase().replace(/\s+/g,' ');
+    if(norm(cust.name)!==norm(name)){
+      const proceed=confirm(`This phone number (${phClean}) is already registered to "${cust.name}".\n\nYou entered "${name}".\n\nClick OK to add this order to the EXISTING customer "${cust.name}".\nClick Cancel to stop and fix the phone number or name.`);
+      if(!proceed){toast('Order not created — check the phone number or customer name','err');return;}
+    }
+  }
+
   if(!cust){
     const rows=await post('customers',{name,phone:phClean,email:em||null,consent:true,loyalty_pts:0,status:'Active'});
     cust=(rows&&rows[0])||{};
