@@ -69,6 +69,11 @@ const me = (()=>{const s=sessionStorage.getItem('oasis_staff');if(!s){location.h
 if(me && me.role!=='Owner') location.href='index.html';
 if(me) document.getElementById('sbnm').textContent=me.name;
 function signout(){sessionStorage.clear();location.href='index.html';}
+async function hashPin(pin){
+  const enc=new TextEncoder().encode(pin);
+  const buf=await crypto.subtle.digest('SHA-256',enc);
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
 
 // API
 async function api(table,opts={}){
@@ -482,7 +487,8 @@ async function saveResetPin(id,name){
   const p2=(document.getElementById('np2')?.value||'').trim();
   if(!p1||p1.length<6){toast('PIN must be at least 6 characters','err');return;}
   if(p1!==p2){toast('PINs do not match','err');return;}
-  await patch('staff','id=eq.'+id,{pin_hash:p1});
+  const hashed=await hashPin(p1);
+  await patch('staff','id=eq.'+id,{pin_hash:hashed});
   await alog('PIN Reset','PIN updated for '+name+' by owner');
   // clear any pending reset requests from audit log display (mark as resolved)
   toast(name+"'s PIN has been reset",'ok');
@@ -502,7 +508,8 @@ function openAddSta(){
 async function saveSta(){
   const n=document.getElementById('sn')?.value.trim(),e=document.getElementById('se')?.value.trim(),r=document.getElementById('sr')?.value,p=document.getElementById('sp')?.value.trim();
   if(!n||!e||!p){toast('All fields required','err');return;}
-  await post('staff',{name:n,email:e,role:r,pin_hash:p,active:true});
+  const hashed=await hashPin(p);
+  await post('staff',{name:n,email:e,role:r,pin_hash:hashed,active:true});
   await alog('Staff Added',n+' — '+r);toast(n+' added','ok');closeModal();init();
 }
 async function toggleSta(id,active){
