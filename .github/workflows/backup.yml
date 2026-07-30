@@ -1,0 +1,25 @@
+name: Oasis Nightly Backup
+
+on:
+  schedule:
+    # Runs at 22:00 UTC = 00:00 SAST (midnight, end of day's orders)
+    - cron: '0 22 * * *'
+  workflow_dispatch: {} # allows manual "Run workflow" button for demos
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Run backup script
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+        run: node scripts/backup.mjs
