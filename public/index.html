@@ -294,6 +294,12 @@ function demo(r){
   login();
 }
 
+async function hashPin(pin){
+  const enc=new TextEncoder().encode(pin);
+  const buf=await crypto.subtle.digest('SHA-256',enc);
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
 async function login(){
   const email=document.getElementById('email').value.trim().toLowerCase();
   const pin=document.getElementById('pin').value.trim();
@@ -330,7 +336,8 @@ async function login(){
     const s=data[0];
 
     // ── WRONG PIN ───────────────────────────────────────────
-    if(s.pin_hash!==pin){
+    const enteredHash=await hashPin(pin);
+    if(s.pin_hash!==enteredHash){
       const count=recordFailedAttempt(email);
       await logFailedLogin(email,'Incorrect PIN (attempt '+count+' of '+MAX_ATTEMPTS+')');
 
